@@ -30,14 +30,14 @@ static const struct
 OpenRGBPluginInfo OpenRGBKeychronV6UltraPlugin::GetPluginInfo()
 {
     OpenRGBPluginInfo info;
-    info.Name          = "Keychron V6 Ultra (OpenRGB direct)";
+    info.Name          = "Keychron V6/Q6 Ultra (OpenRGB direct)";
     info.Description    = "Direct per-key RGB control for the Keychron V6 Ultra 8K "
-                          "running custom ZMK firmware (issue #893).";
+                          "and Q6 Ultra 8K running custom ZMK firmware (issue #893).";
     info.Version        = "0.2.0";
     info.Commit         = "";
     info.URL            = "https://github.com/naaraxi/keychron_v6u_openrgb";
     info.Location       = OPENRGB_PLUGIN_LOCATION_SETTINGS;
-    info.Label          = "Keychron V6U";
+    info.Label          = "Keychron V6/Q6";
     info.TabIconString  = "";
     return(info);
 }
@@ -93,8 +93,8 @@ QWidget* OpenRGBKeychronV6UltraPlugin::GetWidget()
     | it only registers a device. Return a small info label.                 |
     \*-----------------------------------------------------------------------*/
     QLabel* label = new QLabel(
-        "Keychron V6 Ultra 8K (custom ZMK firmware)\n\n"
-        "Control this keyboard from its device page: set the mode to \"Direct\" "
+        "Keychron V6 Ultra 8K / Q6 Ultra 8K (custom ZMK firmware)\n\n"
+        "Control your keyboard from its device page: set the mode to \"Direct\" "
         "to drive the per-key RGB from OpenRGB.");
     label->setAlignment(Qt::AlignCenter);
     label->setWordWrap(true);

@@ -90,7 +90,7 @@ RGBController_KeychronV6Ultra::RGBController_KeychronV6Ultra(KeychronV6UltraCont
     name        = "Keychron V6 Ultra 8K";
     vendor      = "Keychron";
     type        = DEVICE_TYPE_KEYBOARD;
-    description = "Keychron V6 Ultra (custom ZMK firmware, OpenRGB direct control)";
+    description = "Keychron V6/Q6 Ultra (custom ZMK firmware, OpenRGB direct control)";
     location    = controller->GetLocation();
     serial      = controller->GetSerialString();
 
