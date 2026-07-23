@@ -33,7 +33,7 @@ OpenRGBPluginInfo OpenRGBKeychronV6UltraPlugin::GetPluginInfo()
     info.Name          = "Keychron V6 Ultra (OpenRGB direct)";
     info.Description    = "Direct per-key RGB control for the Keychron V6 Ultra 8K "
                           "running custom ZMK firmware (issue #893).";
-    info.Version        = "0.1";
+    info.Version        = "0.2.0";
     info.Commit         = "";
     info.URL            = "https://github.com/naaraxi/keychron_v6u_openrgb";
     info.Location       = OPENRGB_PLUGIN_LOCATION_SETTINGS;
