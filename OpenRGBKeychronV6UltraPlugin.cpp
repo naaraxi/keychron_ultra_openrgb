@@ -36,7 +36,7 @@ OpenRGBPluginInfo OpenRGBKeychronV6UltraPlugin::GetPluginInfo()
     info.Version        = "0.1";
     info.Commit         = "";
     info.URL            = "https://github.com/naaraxi/keychron_v6u_openrgb";
-    info.Location       = OPENRGB_PLUGIN_LOCATION_DEVICES;
+    info.Location       = OPENRGB_PLUGIN_LOCATION_SETTINGS;
     info.Label          = "Keychron V6U";
     info.TabIconString  = "";
     return(info);
