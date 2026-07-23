@@ -26,7 +26,7 @@ boards have been checked on real hardware.
 | Keyboard             | LEDs | Verified                                             |
 |----------------------|------|------------------------------------------------------|
 | Keychron V6 Ultra    | 108  | Yes - tested on hardware                             |
-| Keychron Q6 Ultra    | 108  | Partly - community-reported working (see note)       |
+| Keychron Q6 Ultra    | 108  | No - layout generated from firmware, untested        |
 | Keychron V5 Ultra    | 97   | No - layout generated from firmware, untested        |
 | Keychron V10 Ultra   | 88   | No - layout generated from firmware, untested        |
 | Keychron V3 Ultra    | 87   | No - layout generated from firmware, untested        |
@@ -38,10 +38,6 @@ boards have been checked on real hardware.
 | Keychron Z2-70 Ultra | 75   | No - layout generated from firmware, untested        |
 | Keychron V2 Ultra    | 67   | No - layout generated from firmware, untested        |
 | Keychron V0 Ultra    | 26   | No - layout generated from firmware, untested        |
-
-**Note on the Q6:** it was reported working by a user who flashed the V6 firmware
-onto their Q6, so it enumerated as a V6. The dedicated Q6 layout shipped here has
-not itself been confirmed on hardware yet.
 
 **On the untested boards:** direct RGB control (setting colors) should work on any
 board running the firmware, because that part is not layout-dependent. What is not
