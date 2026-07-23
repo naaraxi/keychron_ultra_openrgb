@@ -1,0 +1,60 @@
+name: build-windows
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Qt5-x64
+            qt:   '5.15.0'
+            arch: 'win64_msvc2019_64'
+            msvc: 'x64'
+          - name: Qt5-x86
+            qt:   '5.15.0'
+            arch: 'win32_msvc2019'
+            msvc: 'x86'
+    steps:
+      - name: Checkout plugin
+        uses: actions/checkout@v4
+
+      - name: Checkout OpenRGB SDK (1.0rc3)
+        run: git clone --depth 1 --branch release_candidate_1.0rc3 https://gitlab.com/CalcProgrammer1/OpenRGB.git OpenRGB
+
+      - name: Install Qt ${{ matrix.qt }}
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ matrix.qt }}
+          host: windows
+          target: desktop
+          arch: ${{ matrix.arch }}
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.msvc }}
+
+      - name: Build
+        shell: cmd
+        run: |
+          qmake OpenRGBKeychronV6UltraPlugin.pro CONFIG+=release
+          nmake
+
+      - name: Collect DLL
+        shell: cmd
+        run: |
+          if exist release\OpenRGBKeychronV6UltraPlugin.dll copy release\OpenRGBKeychronV6UltraPlugin.dll .
+          dir /s /b *.dll
+
+      - name: Upload plugin DLL
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenRGBKeychronV6UltraPlugin-${{ matrix.name }}
+          path: |
+            **/OpenRGBKeychronV6UltraPlugin.dll
+          if-no-files-found: warn

@@ -1,0 +1,17 @@
+# build output
+release/
+debug/
+*.o
+*.obj
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+Makefile*
+*.dll
+*.lib
+*.exp
+.qmake.stash
+
+# OpenRGB SDK is cloned by CI / locally, never committed
+/OpenRGB/
