@@ -9,8 +9,23 @@
 
 #define KEYCHRON_VID        0x3434
 #define KEYCHRON_V6U_PID    0x0C60
+#define KEYCHRON_Q6U_PID    0x1260
 #define RAW_USAGE_PAGE      0xFF60
 #define RAW_USAGE           0x61
+
+/*---------------------------------------------------------------------------*\
+| Supported boards running the custom ZMK firmware. Same protocol / LED count; |
+| only the USB PID and the display name differ (V6 = 0x0C60, Q6 = 0x1260).     |
+\*---------------------------------------------------------------------------*/
+static const struct
+{
+    unsigned short  pid;
+    const char*     name;
+} KEYCHRON_DEVICES[] =
+{
+    { KEYCHRON_V6U_PID, "Keychron V6 Ultra 8K" },
+    { KEYCHRON_Q6U_PID, "Keychron Q6 Ultra 8K" },
+};
 
 OpenRGBPluginInfo OpenRGBKeychronV6UltraPlugin::GetPluginInfo()
 {
@@ -38,32 +53,36 @@ void OpenRGBKeychronV6UltraPlugin::Load(ResourceManagerInterface* resource_manag
 
     hid_init();
 
-    hid_device_info* devs = hid_enumerate(KEYCHRON_VID, KEYCHRON_V6U_PID);
-    for(hid_device_info* cur = devs; cur != nullptr; cur = cur->next)
+    for(const auto& device : KEYCHRON_DEVICES)
     {
-        if(cur->usage_page != RAW_USAGE_PAGE || cur->usage != RAW_USAGE)
+        hid_device_info* devs = hid_enumerate(KEYCHRON_VID, device.pid);
+        for(hid_device_info* cur = devs; cur != nullptr; cur = cur->next)
         {
-            continue;                                   /* only the raw command interface */
-        }
+            if(cur->usage_page != RAW_USAGE_PAGE || cur->usage != RAW_USAGE)
+            {
+                continue;                               /* only the raw command interface */
+            }
 
-        hid_device* dev = hid_open_path(cur->path);
-        if(dev == nullptr)
-        {
-            continue;
-        }
+            hid_device* dev = hid_open_path(cur->path);
+            if(dev == nullptr)
+            {
+                continue;
+            }
 
-        KeychronV6UltraController* ctrl = new KeychronV6UltraController(dev, cur->path);
-        if(!ctrl->IsOpenRGBFirmware())
-        {
-            delete ctrl;                                /* stock fw / not our device */
-            continue;
-        }
+            KeychronV6UltraController* ctrl = new KeychronV6UltraController(dev, cur->path);
+            if(!ctrl->IsOpenRGBFirmware())
+            {
+                delete ctrl;                            /* stock fw / not our device */
+                continue;
+            }
 
-        RGBController_KeychronV6Ultra* rgb = new RGBController_KeychronV6Ultra(ctrl);
-        rm->RegisterRGBController(rgb);
-        registered.push_back(rgb);
+            RGBController_KeychronV6Ultra* rgb = new RGBController_KeychronV6Ultra(ctrl);
+            rgb->name = device.name;                    /* V6 Ultra / Q6 Ultra */
+            rm->RegisterRGBController(rgb);
+            registered.push_back(rgb);
+        }
+        hid_free_enumeration(devs);
     }
-    hid_free_enumeration(devs);
 }
 
 QWidget* OpenRGBKeychronV6UltraPlugin::GetWidget()
