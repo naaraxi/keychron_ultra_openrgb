@@ -21,10 +21,11 @@ static const struct
 {
     unsigned short  pid;
     const char*     name;
+    const char*     description;
 } KEYCHRON_DEVICES[] =
 {
-    { KEYCHRON_V6U_PID, "Keychron V6 Ultra 8K" },
-    { KEYCHRON_Q6U_PID, "Keychron Q6 Ultra 8K" },
+    { KEYCHRON_V6U_PID, "Keychron V6 Ultra 8K", "Keychron V6 Ultra (custom ZMK firmware, OpenRGB direct control)" },
+    { KEYCHRON_Q6U_PID, "Keychron Q6 Ultra 8K", "Keychron Q6 Ultra (custom ZMK firmware, OpenRGB direct control)" },
 };
 
 OpenRGBPluginInfo OpenRGBKeychronV6UltraPlugin::GetPluginInfo()
@@ -33,7 +34,7 @@ OpenRGBPluginInfo OpenRGBKeychronV6UltraPlugin::GetPluginInfo()
     info.Name          = "Keychron V6/Q6 Ultra (OpenRGB direct)";
     info.Description    = "Direct per-key RGB control for the Keychron V6 Ultra 8K "
                           "and Q6 Ultra 8K running custom ZMK firmware (issue #893).";
-    info.Version        = "0.2.0";
+    info.Version        = "0.2.1";
     info.Commit         = "";
     info.URL            = "https://github.com/naaraxi/keychron_v6u_openrgb";
     info.Location       = OPENRGB_PLUGIN_LOCATION_SETTINGS;
@@ -77,7 +78,8 @@ void OpenRGBKeychronV6UltraPlugin::Load(ResourceManagerInterface* resource_manag
             }
 
             RGBController_KeychronV6Ultra* rgb = new RGBController_KeychronV6Ultra(ctrl);
-            rgb->name = device.name;                    /* V6 Ultra / Q6 Ultra */
+            rgb->name        = device.name;             /* V6 Ultra / Q6 Ultra */
+            rgb->description = device.description;
             rm->RegisterRGBController(rgb);
             registered.push_back(rgb);
         }
