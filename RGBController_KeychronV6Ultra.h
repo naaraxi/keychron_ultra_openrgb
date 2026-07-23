@@ -9,11 +9,13 @@
 
 #include "RGBController.h"
 #include "KeychronV6UltraController.h"
+#include "KeychronLayouts.h"
 
 class RGBController_KeychronV6Ultra : public RGBController
 {
 public:
-    RGBController_KeychronV6Ultra(KeychronV6UltraController* controller_ptr);
+    RGBController_KeychronV6Ultra(KeychronV6UltraController* controller_ptr,
+                                  const KeychronLayout* layout_ptr);
     ~RGBController_KeychronV6Ultra();
 
     void        SetupZones();
@@ -28,4 +30,6 @@ public:
 
 private:
     KeychronV6UltraController* controller;
+    const KeychronLayout*      layout;
+    matrix_map_type            matrix;      /* backs the zone's matrix_map pointer */
 };

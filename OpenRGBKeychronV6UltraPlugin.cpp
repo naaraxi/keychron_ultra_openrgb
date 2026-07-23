@@ -4,41 +4,31 @@
 
 #include "OpenRGBKeychronV6UltraPlugin.h"
 #include "KeychronV6UltraController.h"
+#include "KeychronLayouts.h"
 #include <hidapi.h>
 #include <QLabel>
 
 #define KEYCHRON_VID        0x3434
-#define KEYCHRON_V6U_PID    0x0C60
-#define KEYCHRON_Q6U_PID    0x1260
 #define RAW_USAGE_PAGE      0xFF60
 #define RAW_USAGE           0x61
 
 /*---------------------------------------------------------------------------*\
-| Supported boards running the custom ZMK firmware. Same protocol / LED count; |
-| only the USB PID and the display name differ (V6 = 0x0C60, Q6 = 0x1260).     |
+| The set of supported boards (PID + display name + LED layout) lives in       |
+| KEYCHRON_LAYOUTS[] (KeychronLayouts.h). Every board speaks the same 0x16     |
+| raw-HID protocol; only the PID, name and per-key layout differ.              |
 \*---------------------------------------------------------------------------*/
-static const struct
-{
-    unsigned short  pid;
-    const char*     name;
-    const char*     description;
-} KEYCHRON_DEVICES[] =
-{
-    { KEYCHRON_V6U_PID, "Keychron V6 Ultra 8K", "Keychron V6 Ultra (custom ZMK firmware, OpenRGB direct control)" },
-    { KEYCHRON_Q6U_PID, "Keychron Q6 Ultra 8K", "Keychron Q6 Ultra (custom ZMK firmware, OpenRGB direct control)" },
-};
 
 OpenRGBPluginInfo OpenRGBKeychronV6UltraPlugin::GetPluginInfo()
 {
     OpenRGBPluginInfo info;
-    info.Name          = "Keychron V6/Q6 Ultra (OpenRGB direct)";
-    info.Description    = "Direct per-key RGB control for the Keychron V6 Ultra 8K "
-                          "and Q6 Ultra 8K running custom ZMK firmware (issue #893).";
-    info.Version        = "0.2.1";
+    info.Name          = "Keychron Ultra (OpenRGB direct)";
+    info.Description    = "Direct per-key RGB control for Keychron V- and Q-series Ultra "
+                          "keyboards running custom ZMK firmware (issue #893).";
+    info.Version        = "0.3.0";
     info.Commit         = "";
-    info.URL            = "https://github.com/naaraxi/keychron_v6u_openrgb";
+    info.URL            = "https://github.com/naaraxi/keychron_ultra_openrgb";
     info.Location       = OPENRGB_PLUGIN_LOCATION_SETTINGS;
-    info.Label          = "Keychron V6/Q6";
+    info.Label          = "Keychron Ultra";
     info.TabIconString  = "";
     return(info);
 }
@@ -54,9 +44,11 @@ void OpenRGBKeychronV6UltraPlugin::Load(ResourceManagerInterface* resource_manag
 
     hid_init();
 
-    for(const auto& device : KEYCHRON_DEVICES)
+    for(unsigned int i = 0; i < KEYCHRON_LAYOUT_COUNT; i++)
     {
-        hid_device_info* devs = hid_enumerate(KEYCHRON_VID, device.pid);
+        const KeychronLayout* layout = &KEYCHRON_LAYOUTS[i];
+
+        hid_device_info* devs = hid_enumerate(KEYCHRON_VID, layout->pid);
         for(hid_device_info* cur = devs; cur != nullptr; cur = cur->next)
         {
             if(cur->usage_page != RAW_USAGE_PAGE || cur->usage != RAW_USAGE)
@@ -71,15 +63,18 @@ void OpenRGBKeychronV6UltraPlugin::Load(ResourceManagerInterface* resource_manag
             }
 
             KeychronV6UltraController* ctrl = new KeychronV6UltraController(dev, cur->path);
-            if(!ctrl->IsOpenRGBFirmware())
+
+            /*---------------------------------------------------------------*\
+            | Must speak our firmware AND report the LED count this layout    |
+            | expects — guards against a PID/layout mismatch lighting wrong.  |
+            \*---------------------------------------------------------------*/
+            if(!ctrl->IsOpenRGBFirmware() || ctrl->GetLEDCount() != layout->led_count)
             {
-                delete ctrl;                            /* stock fw / not our device */
+                delete ctrl;
                 continue;
             }
 
-            RGBController_KeychronV6Ultra* rgb = new RGBController_KeychronV6Ultra(ctrl);
-            rgb->name        = device.name;             /* V6 Ultra / Q6 Ultra */
-            rgb->description = device.description;
+            RGBController_KeychronV6Ultra* rgb = new RGBController_KeychronV6Ultra(ctrl, layout);
             rm->RegisterRGBController(rgb);
             registered.push_back(rgb);
         }
@@ -95,7 +90,7 @@ QWidget* OpenRGBKeychronV6UltraPlugin::GetWidget()
     | it only registers a device. Return a small info label.                 |
     \*-----------------------------------------------------------------------*/
     QLabel* label = new QLabel(
-        "Keychron V6 Ultra 8K / Q6 Ultra 8K (custom ZMK firmware)\n\n"
+        "Keychron Ultra series (custom ZMK firmware)\n\n"
         "Control your keyboard from its device page: set the mode to \"Direct\" "
         "to drive the per-key RGB from OpenRGB.");
     label->setAlignment(Qt::AlignCenter);

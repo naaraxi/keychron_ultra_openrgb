@@ -86,7 +86,12 @@ int KeychronV6UltraController::xfer(const unsigned char* payload, size_t len, un
 
 bool KeychronV6UltraController::IsOpenRGBFirmware()
 {
-    return(GetLEDCount() == KEYCHRON_V6U_LED_COUNT);
+    /*-----------------------------------------------------------------------*\
+    | Our firmware answers GET_LED_COUNT with a nonzero count; stock firmware  |
+    | doesn't implement the 0x16 command and GetLEDCount() returns 0. The      |
+    | plugin separately checks the count matches the PID's expected layout.    |
+    \*-----------------------------------------------------------------------*/
+    return(GetLEDCount() != 0);
 }
 
 unsigned int KeychronV6UltraController::GetLEDCount()
