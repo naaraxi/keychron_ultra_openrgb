@@ -16,12 +16,14 @@ TARGET   = OpenRGBKeychronV6UltraPlugin
 HEADERS += \
     OpenRGBKeychronV6UltraPlugin.h \
     KeychronV6UltraController.h \
-    RGBController_KeychronV6Ultra.h
+    RGBController_KeychronV6Ultra.h \
+    KeychronLayouts.h
 
 SOURCES += \
     OpenRGBKeychronV6UltraPlugin.cpp \
     KeychronV6UltraController.cpp \
-    RGBController_KeychronV6Ultra.cpp
+    RGBController_KeychronV6Ultra.cpp \
+    KeychronLayouts.cpp
 
 #-----------------------------------------------------------------------------#
 # OpenRGB SDK (checked out at ./OpenRGB @ release_candidate_1.0rc3 by CI)      #

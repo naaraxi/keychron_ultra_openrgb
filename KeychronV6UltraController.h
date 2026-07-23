@@ -25,7 +25,6 @@
 #include <hidapi.h>
 #include "RGBController.h"
 
-#define KEYCHRON_V6U_LED_COUNT    108
 #define KEYCHRON_V6U_EPSIZE       32
 #define KEYCHRON_V6U_LEDS_PER_PKT 9
 
@@ -37,8 +36,8 @@ public:
 
     std::string    GetLocation();
     std::string    GetSerialString();
-    unsigned int   GetLEDCount();          // queries the device (expects 108)
-    bool           IsOpenRGBFirmware();    // false if device answers 0xFF (stock fw)
+    unsigned int   GetLEDCount();          // queries the device; 0 = not our firmware
+    bool           IsOpenRGBFirmware();    // true if GetLEDCount() responds nonzero
 
     void           SetDirectMode(bool enable);
     void           EnsureDirect();         // enter direct + start keepalive if not already

@@ -15,3 +15,8 @@ Makefile*
 
 # OpenRGB SDK is cloned by CI / locally, never committed
 /OpenRGB/
+*.so
+
+# python
+__pycache__/
+*.pyc
