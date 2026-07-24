@@ -26,7 +26,7 @@ boards have been checked on real hardware.
 | Keyboard             | LEDs | Verified                                             |
 |----------------------|------|------------------------------------------------------|
 | Keychron V6 Ultra    | 108  | Yes - tested on hardware                             |
-| Keychron Q6 Ultra    | 108  | No - layout generated from firmware, untested        |
+| Keychron Q6 Ultra    | 108  | Yes - tested on hardware                             |
 | Keychron V5 Ultra    | 97   | No - layout generated from firmware, untested        |
 | Keychron V10 Ultra   | 88   | No - layout generated from firmware, untested        |
 | Keychron V3 Ultra    | 87   | No - layout generated from firmware, untested        |
