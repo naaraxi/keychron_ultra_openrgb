@@ -87,6 +87,18 @@ void RGBController_KeychronV6Ultra::DeviceUpdateLEDs()
 {
     controller->EnsureDirect();   // start direct mode + keepalive on first update
     controller->SetLEDs(colors);
+
+    /*-----------------------------------------------------------------------*\
+    | If a reconnect moved the keyboard to a different HID path, refresh the  |
+    | location we cached at construction. Otherwise OpenRGB (and the SDK, and |
+    | anything reading it such as Artemis) keeps reporting the old node long  |
+    | after it stopped existing, which makes this failure very hard to        |
+    | diagnose. Cheap: an atomic exchange on the common no-change path.       |
+    \*-----------------------------------------------------------------------*/
+    if(controller->TakeLocationChanged())
+    {
+        location = controller->GetLocation();
+    }
 }
 
 void RGBController_KeychronV6Ultra::UpdateZoneLEDs(int /*zone*/)

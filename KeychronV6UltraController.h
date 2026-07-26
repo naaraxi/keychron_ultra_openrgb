@@ -28,10 +28,28 @@
 #define KEYCHRON_V6U_EPSIZE       32
 #define KEYCHRON_V6U_LEDS_PER_PKT 9
 
+/*---------------------------------------------------------*\
+| Shared with the plugin's detection pass: a reconnect must  |
+| filter for exactly the same interface detection picked,    |
+| so these live here rather than being duplicated.          |
+\*---------------------------------------------------------*/
+#define KEYCHRON_V6U_VID             0x3434
+#define KEYCHRON_V6U_RAW_USAGE_PAGE  0xFF60
+#define KEYCHRON_V6U_RAW_USAGE       0x61
+
+/*---------------------------------------------------------*\
+| Minimum gap between reconnect attempts. Without this, a    |
+| genuinely unplugged keyboard would make every failed write |
+| (12 packets per frame, many frames per second) re-run       |
+| hid_enumerate and burn CPU for nothing.                    |
+\*---------------------------------------------------------*/
+#define KEYCHRON_V6U_RECONNECT_COOLDOWN_MS 2000
+
 class KeychronV6UltraController
 {
 public:
-    KeychronV6UltraController(hid_device* dev_handle, const char* path);
+    KeychronV6UltraController(hid_device* dev_handle, const char* path,
+                              unsigned short device_pid, unsigned int expected_led_count);
     ~KeychronV6UltraController();
 
     std::string    GetLocation();
@@ -45,16 +63,37 @@ public:
     bool           GetLEDPosition(unsigned int idx, unsigned int& x, unsigned int& y,
                                   unsigned int& flags);
 
+    /*-----------------------------------------------------------------------*\
+    | True (once) after a reconnect moved us to a different HID path, so the  |
+    | RGBController can refresh the location string it cached at construction.|
+    \*-----------------------------------------------------------------------*/
+    bool           TakeLocationChanged();
+
 private:
     hid_device*        dev;
     std::string        location;
+    unsigned short     pid;               // for re-enumeration on reconnect
+    unsigned int       expected_leds;     // reconnect must land on the same board
     std::mutex         hid_mutex;         // serialize HID I/O (OpenRGB thread + keepalive)
     std::mutex         state_mutex;       // serialize direct-mode / keepalive lifecycle
 
     std::atomic<bool>  direct_active;
     std::atomic<bool>  keepalive_run;
+    std::atomic<bool>  location_changed;
+    bool               shutting_down;     // guarded by hid_mutex; blocks reconnect in dtor
+    std::chrono::steady_clock::time_point last_reconnect;   // guarded by hid_mutex
     std::thread        keepalive_thread;  // re-arms firmware watchdog while direct-mode is on
 
+    /*-----------------------------------------------------------------------*\
+    | xfer() takes hid_mutex and retries once through a reconnect. The        |
+    | _locked variants assume the caller already holds hid_mutex, which is    |
+    | what lets ReconnectLocked() re-take direct mode without recursing into  |
+    | the non-recursive mutex (or inverting the state_mutex -> hid_mutex      |
+    | order that SetDirectMode establishes).                                  |
+    \*-----------------------------------------------------------------------*/
     int  xfer(const unsigned char* payload, size_t len, unsigned char* resp);
+    int  xfer_locked(const unsigned char* payload, size_t len, unsigned char* resp);
+    unsigned int GetLEDCountLocked();
+    bool ReconnectLocked();
     void KeepaliveLoop();
 };

@@ -8,9 +8,11 @@
 #include <hidapi.h>
 #include <QLabel>
 
-#define KEYCHRON_VID        0x3434
-#define RAW_USAGE_PAGE      0xFF60
-#define RAW_USAGE           0x61
+/*---------------------------------------------------------------------------*\
+| VID and the raw-interface usage filter come from KeychronV6UltraController.h  |
+| so that detection here and the controller's reconnect path can never drift    |
+| apart and match different interfaces.                                        |
+\*---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------*\
 | The set of supported boards (PID + display name + LED layout) lives in       |
@@ -48,10 +50,11 @@ void OpenRGBKeychronV6UltraPlugin::Load(ResourceManagerInterface* resource_manag
     {
         const KeychronLayout* layout = &KEYCHRON_LAYOUTS[i];
 
-        hid_device_info* devs = hid_enumerate(KEYCHRON_VID, layout->pid);
+        hid_device_info* devs = hid_enumerate(KEYCHRON_V6U_VID, layout->pid);
         for(hid_device_info* cur = devs; cur != nullptr; cur = cur->next)
         {
-            if(cur->usage_page != RAW_USAGE_PAGE || cur->usage != RAW_USAGE)
+            if(cur->usage_page != KEYCHRON_V6U_RAW_USAGE_PAGE
+            || cur->usage      != KEYCHRON_V6U_RAW_USAGE)
             {
                 continue;                               /* only the raw command interface */
             }
@@ -62,7 +65,9 @@ void OpenRGBKeychronV6UltraPlugin::Load(ResourceManagerInterface* resource_manag
                 continue;
             }
 
-            KeychronV6UltraController* ctrl = new KeychronV6UltraController(dev, cur->path);
+            KeychronV6UltraController* ctrl = new KeychronV6UltraController(dev, cur->path,
+                                                                           layout->pid,
+                                                                           layout->led_count);
 
             /*---------------------------------------------------------------*\
             | Must speak our firmware AND report the LED count this layout    |

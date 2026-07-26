@@ -19,12 +19,22 @@
 
 #define KEEPALIVE_INTERVAL_MS    1500
 
-KeychronV6UltraController::KeychronV6UltraController(hid_device* dev_handle, const char* path)
+KeychronV6UltraController::KeychronV6UltraController(hid_device* dev_handle, const char* path,
+                                                     unsigned short device_pid,
+                                                     unsigned int expected_led_count)
 {
-    dev           = dev_handle;
-    location      = path;
-    direct_active = false;
-    keepalive_run = false;
+    dev              = dev_handle;
+    location         = path;
+    pid              = device_pid;
+    expected_leds    = expected_led_count;
+    direct_active    = false;
+    keepalive_run    = false;
+    location_changed = false;
+    shutting_down    = false;
+
+    /* Backdate so the first failure may reconnect immediately. */
+    last_reconnect   = std::chrono::steady_clock::now()
+                     - std::chrono::milliseconds(KEYCHRON_V6U_RECONNECT_COOLDOWN_MS);
 }
 
 KeychronV6UltraController::~KeychronV6UltraController()
@@ -34,22 +44,44 @@ KeychronV6UltraController::~KeychronV6UltraController()
     {
         keepalive_thread.join();
     }
+
+    /*-----------------------------------------------------------------------*\
+    | Take the lock and go through xfer_locked, not xfer: a failing write here |
+    | must not kick off a reconnect while the object is being destroyed.       |
+    \*-----------------------------------------------------------------------*/
+    std::lock_guard<std::mutex> lock(hid_mutex);
+    shutting_down = true;
+
     if(dev)
     {
         /* Best-effort: return control to onboard lighting on unload. */
         unsigned char pkt[3] = { OPENRGB_CMD, SUB_SET_DIRECT_MODE, 0 };
-        xfer(pkt, sizeof(pkt), nullptr);
+        xfer_locked(pkt, sizeof(pkt), nullptr);
         hid_close(dev);
+        dev = nullptr;
     }
 }
 
 std::string KeychronV6UltraController::GetLocation()
 {
+    std::lock_guard<std::mutex> lock(hid_mutex);
     return("HID: " + location);
+}
+
+bool KeychronV6UltraController::TakeLocationChanged()
+{
+    return(location_changed.exchange(false));
 }
 
 std::string KeychronV6UltraController::GetSerialString()
 {
+    std::lock_guard<std::mutex> lock(hid_mutex);
+
+    if(dev == nullptr)
+    {
+        return("");
+    }
+
     wchar_t serial[128];
     if(hid_get_serial_number_string(dev, serial, 128) != 0)
     {
@@ -63,9 +95,13 @@ std::string KeychronV6UltraController::GetSerialString()
 | Send one command; optionally read the echoed response.    |
 | Returns bytes read into resp, or -1. Mutex-guarded.       |
 \*---------------------------------------------------------*/
-int KeychronV6UltraController::xfer(const unsigned char* payload, size_t len, unsigned char* resp)
+int KeychronV6UltraController::xfer_locked(const unsigned char* payload, size_t len,
+                                          unsigned char* resp)
 {
-    std::lock_guard<std::mutex> lock(hid_mutex);
+    if(dev == nullptr)
+    {
+        return(-1);
+    }
 
     unsigned char buf[KEYCHRON_V6U_EPSIZE + 1];
     memset(buf, 0x00, sizeof(buf));
@@ -82,6 +118,122 @@ int KeychronV6UltraController::xfer(const unsigned char* payload, size_t len, un
         return(hid_read_timeout(dev, resp, KEYCHRON_V6U_EPSIZE, 500));
     }
     return(0);
+}
+
+int KeychronV6UltraController::xfer(const unsigned char* payload, size_t len, unsigned char* resp)
+{
+    std::lock_guard<std::mutex> lock(hid_mutex);
+
+    int ret = xfer_locked(payload, len, resp);
+    if(ret >= 0)
+    {
+        return(ret);
+    }
+
+    /*-----------------------------------------------------------------------*\
+    | The write failed, which on both Linux and Windows is what a handle to a  |
+    | re-enumerated device looks like (the keyboard comes back on a different  |
+    | hidraw node / device path after a sleep-wake cycle or a firmware-side    |
+    | USB reset). Re-open it and retry once.                                   |
+    \*-----------------------------------------------------------------------*/
+    if(!ReconnectLocked())
+    {
+        return(-1);
+    }
+
+    return(xfer_locked(payload, len, resp));
+}
+
+unsigned int KeychronV6UltraController::GetLEDCountLocked()
+{
+    unsigned char pkt[2] = { OPENRGB_CMD, SUB_GET_LED_COUNT };
+    unsigned char resp[KEYCHRON_V6U_EPSIZE] = { 0 };
+    if(xfer_locked(pkt, sizeof(pkt), resp) > 0 && resp[0] == OPENRGB_CMD)
+    {
+        return((unsigned int)(resp[2] | (resp[3] << 8)));
+    }
+    return(0);
+}
+
+/*---------------------------------------------------------*\
+| Re-open the keyboard after it re-enumerated. Caller must   |
+| hold hid_mutex. Returns true if we now have a working      |
+| handle to the same board.                                  |
+\*---------------------------------------------------------*/
+bool KeychronV6UltraController::ReconnectLocked()
+{
+    if(shutting_down)
+    {
+        return(false);
+    }
+
+    std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+    if(now - last_reconnect < std::chrono::milliseconds(KEYCHRON_V6U_RECONNECT_COOLDOWN_MS))
+    {
+        return(false);
+    }
+    last_reconnect = now;
+
+    if(dev != nullptr)
+    {
+        hid_close(dev);
+        dev = nullptr;
+    }
+
+    hid_device_info* devs = hid_enumerate(KEYCHRON_V6U_VID, pid);
+    bool reconnected      = false;
+
+    for(hid_device_info* cur = devs; cur != nullptr; cur = cur->next)
+    {
+        if(cur->usage_page != KEYCHRON_V6U_RAW_USAGE_PAGE || cur->usage != KEYCHRON_V6U_RAW_USAGE)
+        {
+            continue;                               /* only the raw command interface */
+        }
+
+        hid_device* candidate = hid_open_path(cur->path);
+        if(candidate == nullptr)
+        {
+            continue;
+        }
+
+        dev = candidate;
+
+        /*-------------------------------------------------------------------*\
+        | Same check detection uses, so we can never rebind to a different    |
+        | Ultra board (or to stock firmware) that happens to share the bus.   |
+        \*-------------------------------------------------------------------*/
+        if(GetLEDCountLocked() != expected_leds)
+        {
+            hid_close(dev);
+            dev = nullptr;
+            continue;
+        }
+
+        if(location != cur->path)
+        {
+            location         = cur->path;
+            location_changed = true;
+        }
+
+        /*-------------------------------------------------------------------*\
+        | While we were writing into a dead handle the firmware's 3s watchdog  |
+        | expired and handed the LEDs back to onboard lighting, so re-taking   |
+        | direct mode is required - re-opening the handle alone leaves the     |
+        | keyboard running its own effects. The keepalive thread is already    |
+        | running and keeps re-arming from here on.                            |
+        \*-------------------------------------------------------------------*/
+        if(direct_active)
+        {
+            unsigned char pkt[3] = { OPENRGB_CMD, SUB_SET_DIRECT_MODE, 1 };
+            xfer_locked(pkt, sizeof(pkt), nullptr);
+        }
+
+        reconnected = true;
+        break;
+    }
+
+    hid_free_enumeration(devs);
+    return(reconnected);
 }
 
 bool KeychronV6UltraController::IsOpenRGBFirmware()
