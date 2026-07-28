@@ -143,7 +143,7 @@ These are edge paths - the core per-device control is solid and unaffected.
 ## Related / Notable
 
 - **[ModeShift](https://github.com/storymode-exe/ModeShift)** by storymode-exe -
-  a Linux app that switches your keyboard lighting per game, with modes, zones,
-  an HSV color picker, and hold-to-switch key bindings
+  switches your keyboard lighting per game, with modes, zones, an HSV color picker,
+  and hold-to-switch key bindings
 
 
