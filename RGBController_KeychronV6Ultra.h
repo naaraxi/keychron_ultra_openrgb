@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <mutex>
+
 #include "RGBController.h"
 #include "KeychronV6UltraController.h"
 #include "KeychronLayouts.h"
@@ -29,7 +31,15 @@ public:
     void        SetCustomMode();
 
 private:
+    void        UpdateLEDsLocked();         /* caller must hold controller_mutex */
+
     KeychronV6UltraController* controller;
     const KeychronLayout*      layout;
     matrix_map_type            matrix;      /* backs the zone's matrix_map pointer */
+
+    /*-----------------------------------------------------------------------*\
+    | Guards `controller` against the base class's DeviceCallThread - see the |
+    | destructor for why that thread can outlive the pointer.                 |
+    \*-----------------------------------------------------------------------*/
+    std::mutex                 controller_mutex;
 };

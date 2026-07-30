@@ -11,6 +11,7 @@
 #include <QObject>
 #include <QWidget>
 #include <QMenu>
+#include <mutex>
 #include <vector>
 
 #include "OpenRGBPluginInterface.h"
@@ -32,6 +33,22 @@ public:
     void                Unload()                                          override;
 
 private:
+    /*-----------------------------------------------------------------------*\
+    | Fired by ResourceManager::ProcessPostDetection at the end of every      |
+    | detection cycle, including every "Rescan Devices". See Load() for why   |
+    | the plugin has to re-detect there.                                     |
+    \*-----------------------------------------------------------------------*/
+    static void         OnDetectionEnd(void* arg);
+
+    void                DetectControllers();
+    void                DropDeletedControllers();
+
     ResourceManagerInterface*                    rm = nullptr;
     std::vector<RGBController_KeychronV6Ultra*>  registered;
+
+    /*-----------------------------------------------------------------------*\
+    | registered is touched from the detection thread (OnDetectionEnd) and     |
+    | from the GUI thread (Unload), so it needs guarding.                     |
+    \*-----------------------------------------------------------------------*/
+    std::mutex                                   registered_mutex;
 };

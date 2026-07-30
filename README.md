@@ -116,29 +116,12 @@ inside `Qt5Core` on load. Local build: same steps with Qt 5.15 + MSVC. Pushing a
 ## Known issues
 
 This plugin is still young and isn't 100% compatible with everything OpenRGB
-does. Per-device control (the main use case) works fine, but some actions can
-crash OpenRGB **on some systems**. The two below are what's turned up so far -
-they're **almost certainly not the only rough edges**, so treat this as a
-non-exhaustive list and expect the occasional surprise. Each has an easy
-workaround:
+does. Per-device control (the main use case) works fine, but some edge paths are
+rougher, and this is **not an exhaustive list** - expect the occasional surprise.
 
-- **"Rescan Devices" can crash OpenRGB.** You don't normally need to rescan -
-  the keyboard is detected at startup and stays detected.
 - **"Apply to all devices" can crash OpenRGB.** Set this keyboard's mode/color
-  from its own device page instead.
-
-These are edge paths - the core per-device control is solid and unaffected.
-
-## Files
-
-- `KeychronV6UltraController.*` - the raw-HID protocol (0x16 command).
-- `RGBController_KeychronV6Ultra.*` - OpenRGB device wrapper (Direct mode);
-  reads all board-specific data from a layout descriptor.
-- `KeychronLayouts.*` - the per-board table (PID, name, LED count, physical
-  matrix map, key labels) for every supported keyboard.
-- `OpenRGBKeychronV6UltraPlugin.*` - plugin entry: enumerate + match + register.
-- `tools/gen_keychron_layouts.py` - regenerates `KeychronLayouts.*` from the
-  firmware's shield definitions (LED positions + keymap).
+  from its own device page instead. Not yet root-caused; the fault reported so
+  far is inside OpenRGB itself rather than the plugin.
 
 ## Related / Notable
 

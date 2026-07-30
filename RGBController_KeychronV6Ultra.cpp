@@ -45,7 +45,34 @@ RGBController_KeychronV6Ultra::RGBController_KeychronV6Ultra(KeychronV6UltraCont
 
 RGBController_KeychronV6Ultra::~RGBController_KeychronV6Ultra()
 {
+    /*-----------------------------------------------------------------------*\
+    | RGBController's constructor starts DeviceCallThread, which calls the    |
+    | virtual DeviceUpdateLEDs()/DeviceUpdateMode() in a loop, and only the   |
+    | BASE destructor stops it - base destructors run after this body. Freeing |
+    | the hardware controller here unguarded is therefore a use-after-free    |
+    | whenever an update is in flight, and that is a routine path rather than |
+    | a shutdown-only one: OpenRGB's Cleanup() destroys plugin-registered     |
+    | controllers on every "Rescan Devices".                                  |
+    |                                                                        |
+    | Taking the same mutex the update methods take means a concurrent update |
+    | either completes before the pointer goes away or sees nullptr and does  |
+    | nothing.                                                                |
+    |                                                                        |
+    | This also closes the matching race in ~KeychronV6UltraController, which |
+    | stops and joins the keepalive thread without holding its own            |
+    | state_mutex: DeviceUpdateMode() is the only caller of SetDirectMode()   |
+    | and can no longer run while this lock is held.                          |
+    |                                                                        |
+    | Residual, not fixable from a plugin: once ~RGBController begins, the    |
+    | vptr is demoted while its thread is still running, so a call flag set   |
+    | in that window dispatches a pure virtual. CallFlag_*, DeviceCallThread  |
+    | and DeviceThreadRunning are all private in RGBController, so a subclass |
+    | cannot drain or stop the thread earlier.                                |
+    \*-----------------------------------------------------------------------*/
+    std::lock_guard<std::mutex> lock(controller_mutex);
+
     delete controller;
+    controller = nullptr;
 }
 
 void RGBController_KeychronV6Ultra::SetupZones()
@@ -85,6 +112,18 @@ void RGBController_KeychronV6Ultra::ResizeZone(int /*zone*/, int /*new_size*/)
 
 void RGBController_KeychronV6Ultra::DeviceUpdateLEDs()
 {
+    std::lock_guard<std::mutex> lock(controller_mutex);
+
+    UpdateLEDsLocked();
+}
+
+void RGBController_KeychronV6Ultra::UpdateLEDsLocked()
+{
+    if(controller == nullptr)
+    {
+        return;                   /* torn down by a rescan - nothing to drive */
+    }
+
     controller->EnsureDirect();   // start direct mode + keepalive on first update
     controller->SetLEDs(colors);
 
@@ -113,13 +152,20 @@ void RGBController_KeychronV6Ultra::UpdateSingleLED(int /*led*/)
 
 void RGBController_KeychronV6Ultra::DeviceUpdateMode()
 {
+    std::lock_guard<std::mutex> lock(controller_mutex);
+
+    if(controller == nullptr)
+    {
+        return;
+    }
+
     /* Direct is the only host-driven mode; entering it takes the keyboard over  |
      | (and starts the keepalive), leaving it hands back to onboard lighting.    */
     controller->SetDirectMode(active_mode == MODE_DIRECT);
 
     if(active_mode == MODE_DIRECT)
     {
-        DeviceUpdateLEDs();
+        UpdateLEDsLocked();       /* already holding the lock - must not re-take it */
     }
 }
 
