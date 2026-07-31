@@ -17,6 +17,9 @@ Makefile*
 /OpenRGB/
 *.so
 
+# local-only tooling, not shipped
+/tools/
+
 # python
 __pycache__/
 *.pyc

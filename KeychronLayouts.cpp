@@ -4,12 +4,12 @@
 
 static unsigned int keychron_v0_ultra_ansi_matrix_map[] =
 {
-    NO_LED, NO_LED, 0, 1, 2, NO_LED, 3,
-    4, NO_LED, 5, 6, 7, NO_LED, 8,
-    9, NO_LED, 10, 11, 12, NO_LED, 13,
-    14, NO_LED, 15, 16, 17, NO_LED, NO_LED,
-    18, NO_LED, 19, 20, 21, NO_LED, 22,
-    23, NO_LED, 24, NO_LED, 25, NO_LED, NO_LED,
+    NO_LED, 0, 1, 2, 3,
+    4, 5, 6, 7, 8,
+    9, 10, 11, 12, 13,
+    14, 15, 16, 17, NO_LED,
+    18, 19, 20, 21, 22,
+    23, NO_LED, 24, 25, NO_LED,
 };
 
 static const char* keychron_v0_ultra_ansi_led_names[] =
@@ -44,11 +44,11 @@ static const char* keychron_v0_ultra_ansi_led_names[] =
 
 static unsigned int keychron_v2_ultra_ansi_matrix_map[] =
 {
-    0, 1, 2, NO_LED, 3, 4, 5, 6, NO_LED, 7, 8, 9, 10, NO_LED, 11, 12, NO_LED, 13, NO_LED, 14,
-    15, NO_LED, 16, 17, 18, NO_LED, 19, 20, 21, 22, 23, NO_LED, 24, 25, 26, 27, NO_LED, 28, NO_LED, 29,
-    NO_LED, 30, 31, 32, NO_LED, 33, 34, 35, 36, NO_LED, 37, 38, 39, 40, 41, NO_LED, NO_LED, 42, NO_LED, 43,
-    NO_LED, 44, NO_LED, 45, 46, 47, 48, NO_LED, 49, 50, 51, 52, NO_LED, 53, 54, 55, NO_LED, 56, NO_LED, NO_LED,
-    57, NO_LED, 58, 59, NO_LED, NO_LED, NO_LED, NO_LED, 60, NO_LED, NO_LED, NO_LED, 61, NO_LED, 62, 63, 64, 65, NO_LED, 66,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, NO_LED, 14,
+    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, NO_LED, 29,
+    30, NO_LED, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, NO_LED, 43,
+    44, NO_LED, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, NO_LED, 56, NO_LED,
+    57, 58, NO_LED, 59, NO_LED, NO_LED, 60, NO_LED, NO_LED, NO_LED, 61, 62, 63, 64, 65, 66,
 };
 
 static const char* keychron_v2_ultra_ansi_led_names[] =
@@ -124,11 +124,11 @@ static const char* keychron_v2_ultra_ansi_led_names[] =
 
 static unsigned int keychron_z270_ultra_ansi_matrix_map[] =
 {
-    0, 1, 2, 3, 4, 5, 6, 7, NO_LED, 8, 9, 10, 11, 12, NO_LED, 13, 14, 15, 16,
-    17, 18, 19, 20, 21, 22, 23, 24, NO_LED, 25, 26, 27, 28, 29, NO_LED, 30, 31, 32, 33,
-    34, 35, 36, 37, 38, 39, 40, 41, NO_LED, 42, 43, 44, 45, NO_LED, NO_LED, 46, 47, 48, 49,
-    50, NO_LED, 51, 52, 53, 54, 55, 56, NO_LED, 57, 58, 59, 60, NO_LED, NO_LED, 61, 62, 63, 64,
-    65, 66, 67, NO_LED, NO_LED, NO_LED, 68, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, 69, 70, NO_LED, 71, 72, 73, 74,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+    17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33,
+    34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, NO_LED, 46, 47, 48, 49,
+    50, NO_LED, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, NO_LED, 61, 62, 63, 64,
+    65, 66, 67, NO_LED, NO_LED, 68, NO_LED, NO_LED, NO_LED, NO_LED, 69, 70, 71, 72, 73, 74, NO_LED,
 };
 
 static const char* keychron_z270_ultra_ansi_led_names[] =
@@ -212,12 +212,12 @@ static const char* keychron_z270_ultra_ansi_led_names[] =
 
 static unsigned int keychron_v1_ultra_ansi_matrix_map[] =
 {
-    0, NO_LED, 1, 2, 3, 4, NO_LED, 5, 6, 7, 8, NO_LED, 9, 10, 11, NO_LED, 12, 13, NO_LED, 14,
-    15, 16, 17, NO_LED, 18, 19, 20, 21, NO_LED, 22, 23, 24, 25, NO_LED, 26, 27, NO_LED, 28, NO_LED, 29,
-    30, NO_LED, 31, 32, 33, NO_LED, 34, 35, 36, 37, 38, NO_LED, 39, 40, 41, 42, NO_LED, 43, NO_LED, 44,
-    NO_LED, 45, 46, 47, NO_LED, 48, 49, 50, 51, NO_LED, 52, 53, 54, 55, 56, NO_LED, NO_LED, 57, NO_LED, 58,
-    NO_LED, 59, NO_LED, 60, 61, 62, 63, NO_LED, 64, 65, 66, 67, NO_LED, 68, 69, 70, NO_LED, 71, NO_LED, NO_LED,
-    72, NO_LED, 73, 74, NO_LED, NO_LED, NO_LED, NO_LED, 75, NO_LED, NO_LED, NO_LED, 76, NO_LED, 77, 78, 79, 80, NO_LED, 81,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, NO_LED, 9, 10, 11, 12, 13, 14,
+    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, NO_LED, 29,
+    30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, NO_LED, 44,
+    45, NO_LED, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, NO_LED, 58,
+    59, NO_LED, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, NO_LED, 71, NO_LED,
+    72, 73, NO_LED, 74, NO_LED, NO_LED, 75, NO_LED, NO_LED, NO_LED, 76, 77, 78, 79, 80, 81,
 };
 
 static const char* keychron_v1_ultra_ansi_led_names[] =
@@ -308,12 +308,12 @@ static const char* keychron_v1_ultra_ansi_led_names[] =
 
 static unsigned int keychron_q1_ultra_ansi_matrix_map[] =
 {
-    0, NO_LED, 1, 2, 3, 4, NO_LED, 5, 6, 7, 8, NO_LED, 9, 10, 11, NO_LED, 12, 13, NO_LED, 14,
-    15, 16, 17, NO_LED, 18, 19, 20, 21, NO_LED, 22, 23, 24, 25, NO_LED, 26, 27, NO_LED, 28, NO_LED, 29,
-    30, NO_LED, 31, 32, 33, NO_LED, 34, 35, 36, 37, 38, NO_LED, 39, 40, 41, 42, NO_LED, 43, NO_LED, 44,
-    NO_LED, 45, 46, 47, NO_LED, 48, 49, 50, 51, NO_LED, 52, 53, 54, 55, 56, NO_LED, NO_LED, 57, NO_LED, 58,
-    NO_LED, 59, NO_LED, 60, 61, 62, 63, NO_LED, 64, 65, 66, 67, NO_LED, 68, 69, 70, NO_LED, 71, NO_LED, NO_LED,
-    72, NO_LED, 73, 74, NO_LED, NO_LED, NO_LED, NO_LED, 75, NO_LED, NO_LED, NO_LED, 76, NO_LED, 77, 78, 79, 80, NO_LED, 81,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, NO_LED, 9, 10, 11, 12, 13, 14,
+    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, NO_LED, 29,
+    30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, NO_LED, 44,
+    45, NO_LED, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, NO_LED, 58,
+    59, NO_LED, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, NO_LED, 71, NO_LED,
+    72, 73, NO_LED, 74, NO_LED, NO_LED, 75, NO_LED, NO_LED, NO_LED, 76, 77, 78, 79, 80, 81,
 };
 
 static const char* keychron_q1_ultra_ansi_led_names[] =
@@ -404,12 +404,12 @@ static const char* keychron_q1_ultra_ansi_led_names[] =
 
 static unsigned int keychron_v1_ultra_iso_matrix_map[] =
 {
-    0, NO_LED, 1, 2, 3, 4, NO_LED, 5, 6, 7, 8, NO_LED, 9, 10, 11, NO_LED, 12, 13, NO_LED, 14,
-    15, 16, 17, NO_LED, 18, 19, 20, 21, NO_LED, 22, 23, 24, 25, NO_LED, 26, 27, NO_LED, 28, NO_LED, 29,
-    30, NO_LED, 31, 32, 33, NO_LED, 34, 35, 36, 37, 38, NO_LED, 39, 40, 41, 42, NO_LED, 43, NO_LED, 44,
-    NO_LED, 45, 46, 47, NO_LED, 48, 49, 50, 51, NO_LED, 52, 53, 54, 55, 56, 57, NO_LED, NO_LED, NO_LED, 58,
-    NO_LED, 59, 60, 61, 62, 63, 64, NO_LED, 65, 66, 67, 68, NO_LED, 69, 70, 71, NO_LED, 72, NO_LED, NO_LED,
-    73, NO_LED, 74, 75, NO_LED, NO_LED, NO_LED, NO_LED, 76, NO_LED, NO_LED, NO_LED, 77, NO_LED, 78, 79, 80, 81, NO_LED, 82,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, NO_LED, 9, 10, 11, 12, 13, 14,
+    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, NO_LED, 29,
+    30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, NO_LED, 44,
+    45, NO_LED, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, NO_LED, 58,
+    59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, NO_LED, 72, NO_LED,
+    73, 74, NO_LED, 75, NO_LED, NO_LED, 76, NO_LED, NO_LED, NO_LED, 77, 78, 79, 80, 81, 82,
 };
 
 static const char* keychron_v1_ultra_iso_led_names[] =
@@ -501,12 +501,12 @@ static const char* keychron_v1_ultra_iso_led_names[] =
 
 static unsigned int keychron_v1_ultra_jis_matrix_map[] =
 {
-    0, NO_LED, 1, 2, 3, 4, NO_LED, 5, 6, 7, 8, NO_LED, 9, 10, 11, NO_LED, 12, 13, NO_LED, 14,
-    15, 16, 17, NO_LED, 18, 19, 20, 21, NO_LED, 22, 23, 24, 25, NO_LED, 26, 27, 28, 29, NO_LED, 30,
-    31, NO_LED, 32, 33, 34, NO_LED, 35, 36, 37, 38, 39, NO_LED, 40, 41, 42, 43, NO_LED, 44, NO_LED, 45,
-    NO_LED, 46, 47, 48, NO_LED, 49, 50, 51, 52, NO_LED, 53, 54, 55, 56, 57, 58, NO_LED, NO_LED, NO_LED, 59,
-    NO_LED, 60, NO_LED, 61, 62, 63, 64, NO_LED, 65, 66, 67, 68, NO_LED, 69, 70, 71, 72, 73, NO_LED, NO_LED,
-    74, NO_LED, 75, 76, 77, NO_LED, NO_LED, NO_LED, 78, NO_LED, NO_LED, NO_LED, 79, 80, 81, 82, 83, 84, NO_LED, 85,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, NO_LED,
+    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+    31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, NO_LED,
+    46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, NO_LED, NO_LED, 59,
+    60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, NO_LED, NO_LED,
+    74, 75, 76, 77, NO_LED, NO_LED, 78, NO_LED, NO_LED, 79, 80, 81, 82, 83, 84, 85,
 };
 
 static const char* keychron_v1_ultra_jis_led_names[] =
@@ -601,12 +601,12 @@ static const char* keychron_v1_ultra_jis_led_names[] =
 
 static unsigned int keychron_v3_ultra_ansi_matrix_map[] =
 {
-    0, NO_LED, 1, 2, 3, 4, NO_LED, 5, 6, 7, 8, NO_LED, 9, 10, 11, NO_LED, 12, NO_LED, NO_LED, 13, 14, 15,
-    16, 17, 18, NO_LED, 19, 20, 21, 22, NO_LED, 23, 24, 25, 26, NO_LED, 27, 28, NO_LED, 29, NO_LED, 30, 31, 32,
-    33, NO_LED, 34, 35, 36, NO_LED, 37, 38, 39, 40, 41, NO_LED, 42, 43, 44, 45, NO_LED, 46, NO_LED, 47, 48, 49,
-    NO_LED, 50, 51, 52, NO_LED, 53, 54, 55, 56, NO_LED, 57, 58, 59, 60, 61, NO_LED, 62, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED,
-    NO_LED, 63, NO_LED, 64, 65, 66, 67, NO_LED, 68, 69, 70, 71, NO_LED, 72, 73, NO_LED, 74, NO_LED, NO_LED, NO_LED, 75, NO_LED,
-    76, NO_LED, 77, 78, NO_LED, NO_LED, NO_LED, NO_LED, 79, NO_LED, NO_LED, NO_LED, NO_LED, 80, 81, NO_LED, 82, 83, NO_LED, 84, 85, 86,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, NO_LED, 9, 10, 11, 12, NO_LED, 13, 14, 15,
+    16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, NO_LED, 30, 31, 32,
+    33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, NO_LED, 47, 48, 49,
+    50, NO_LED, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, NO_LED, NO_LED, NO_LED, NO_LED,
+    63, NO_LED, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, NO_LED, 74, NO_LED, NO_LED, 75, NO_LED,
+    76, 77, NO_LED, 78, NO_LED, NO_LED, 79, NO_LED, NO_LED, NO_LED, 80, 81, 82, 83, NO_LED, 84, 85, 86,
 };
 
 static const char* keychron_v3_ultra_ansi_led_names[] =
@@ -702,12 +702,12 @@ static const char* keychron_v3_ultra_ansi_led_names[] =
 
 static unsigned int keychron_q3_ultra_ansi_matrix_map[] =
 {
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, NO_LED, 10, 11, 12, NO_LED, 13, NO_LED, 14, 15,
-    16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, NO_LED, 29, 30, NO_LED, 31, 32,
-    33, NO_LED, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, NO_LED, 48, 49,
-    NO_LED, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED,
-    NO_LED, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, NO_LED, 74, NO_LED, NO_LED, NO_LED, 75, NO_LED,
-    76, 77, NO_LED, 78, NO_LED, NO_LED, 79, NO_LED, NO_LED, NO_LED, 80, 81, 82, NO_LED, 83, 84, NO_LED, 85, 86,
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, NO_LED, NO_LED, 13, 14, 15,
+    16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, NO_LED, 29, 30, 31, 32,
+    33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, NO_LED,
+    50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, NO_LED, 62, NO_LED, NO_LED, NO_LED, NO_LED,
+    63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, NO_LED, 74, NO_LED, NO_LED, 75, NO_LED, NO_LED,
+    76, 77, 78, NO_LED, NO_LED, NO_LED, 79, NO_LED, NO_LED, NO_LED, 80, 81, 82, NO_LED, 83, 84, 85, 86,
 };
 
 static const char* keychron_q3_ultra_ansi_led_names[] =
@@ -803,12 +803,12 @@ static const char* keychron_q3_ultra_ansi_led_names[] =
 
 static unsigned int keychron_v10_ultra_ansi_matrix_map[] =
 {
-    NO_LED, 0, NO_LED, 1, 2, 3, 4, 5, 6, NO_LED, 7, 8, 9, 10, NO_LED, 11, 12, 13, 14, NO_LED,
-    15, NO_LED, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, NO_LED, 27, 28, NO_LED, 29, 30, NO_LED,
-    31, NO_LED, 32, 33, 34, 35, 36, 37, NO_LED, 38, 39, 40, 41, 42, 43, 44, NO_LED, 45, NO_LED, 46,
-    47, NO_LED, 48, 49, 50, 51, 52, 53, NO_LED, NO_LED, 54, 55, 56, 57, 58, 59, NO_LED, 60, NO_LED, 61,
-    62, NO_LED, 63, 64, 65, 66, 67, 68, NO_LED, 69, 70, 71, 72, 73, 74, NO_LED, 75, 76, NO_LED, NO_LED,
-    77, 78, NO_LED, 79, 80, NO_LED, 81, NO_LED, 82, NO_LED, 83, NO_LED, 84, NO_LED, NO_LED, NO_LED, NO_LED, 85, 86, 87,
+    0, 1, 2, 3, 4, 5, 6, NO_LED, 7, 8, 9, 10, 11, 12, 13, 14, NO_LED, NO_LED, NO_LED,
+    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, NO_LED, 29, 30, NO_LED, NO_LED,
+    31, 32, 33, 34, 35, 36, 37, NO_LED, 38, 39, 40, 41, 42, 43, 44, 45, 46, NO_LED, NO_LED,
+    47, 48, 49, 50, 51, 52, 53, NO_LED, 54, 55, 56, 57, 58, 59, NO_LED, 60, NO_LED, 61, NO_LED,
+    62, 63, 64, 65, 66, 67, 68, NO_LED, 69, 70, 71, 72, 73, 74, 75, 76, NO_LED, NO_LED, NO_LED,
+    77, 78, 79, NO_LED, 80, NO_LED, 81, 82, NO_LED, 83, NO_LED, 84, NO_LED, NO_LED, NO_LED, NO_LED, 85, 86, 87,
 };
 
 static const char* keychron_v10_ultra_ansi_led_names[] =
@@ -905,12 +905,12 @@ static const char* keychron_v10_ultra_ansi_led_names[] =
 
 static unsigned int keychron_v5_ultra_ansi_matrix_map[] =
 {
-    0, NO_LED, 1, 2, 3, 4, NO_LED, 5, 6, 7, 8, NO_LED, 9, 10, 11, 12, 13, 14, NO_LED, 15, NO_LED,
-    16, 17, 18, 19, 20, 21, NO_LED, 22, 23, 24, 25, 26, 27, 28, NO_LED, 29, 30, NO_LED, 31, 32, 33,
-    34, 35, 36, 37, 38, NO_LED, 39, 40, 41, 42, 43, 44, 45, 46, NO_LED, 47, 48, NO_LED, 49, 50, 67,
-    51, 52, 53, 54, NO_LED, 55, 56, 57, 58, 59, 60, 61, NO_LED, 62, NO_LED, 63, 64, NO_LED, 65, 66, NO_LED,
-    68, NO_LED, 69, 70, 71, 72, NO_LED, 73, 74, 75, 76, 77, 78, NO_LED, 79, 80, 81, NO_LED, 82, 83, 84,
-    85, 86, 87, NO_LED, NO_LED, NO_LED, NO_LED, 88, NO_LED, NO_LED, NO_LED, 89, 90, 91, 92, 93, 94, NO_LED, 95, 96, NO_LED,
+    0, NO_LED, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, NO_LED,
+    16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33,
+    34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 67,
+    51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, NO_LED, 63, 64, 65, 66, NO_LED,
+    68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, NO_LED,
+    85, 86, 87, NO_LED, NO_LED, NO_LED, 88, NO_LED, NO_LED, NO_LED, 89, 90, 91, 92, 93, 94, 95, 96,
 };
 
 static const char* keychron_v5_ultra_ansi_led_names[] =
@@ -1264,7 +1264,7 @@ const KeychronLayout KEYCHRON_LAYOUTS[] =
         0x0c00,
         "Keychron V0 Ultra 8K",
         "V0 Ultra (custom ZMK firmware, OpenRGB direct control)",
-        26, 6, 7,
+        26, 6, 5,
         keychron_v0_ultra_ansi_matrix_map,
         keychron_v0_ultra_ansi_led_names,
     },
@@ -1272,7 +1272,7 @@ const KeychronLayout KEYCHRON_LAYOUTS[] =
         0x0c20,
         "Keychron V2 Ultra 8K",
         "V2 Ultra (custom ZMK firmware, OpenRGB direct control)",
-        67, 5, 20,
+        67, 5, 16,
         keychron_v2_ultra_ansi_matrix_map,
         keychron_v2_ultra_ansi_led_names,
     },
@@ -1280,7 +1280,7 @@ const KeychronLayout KEYCHRON_LAYOUTS[] =
         0x0d20,
         "Keychron Z2-70 Ultra 8K",
         "Z2-70 Ultra (custom ZMK firmware, OpenRGB direct control)",
-        75, 5, 19,
+        75, 5, 17,
         keychron_z270_ultra_ansi_matrix_map,
         keychron_z270_ultra_ansi_led_names,
     },
@@ -1288,7 +1288,7 @@ const KeychronLayout KEYCHRON_LAYOUTS[] =
         0x0c10,
         "Keychron V1 Ultra 8K",
         "V1 Ultra (custom ZMK firmware, OpenRGB direct control)",
-        82, 6, 20,
+        82, 6, 16,
         keychron_v1_ultra_ansi_matrix_map,
         keychron_v1_ultra_ansi_led_names,
     },
@@ -1296,7 +1296,7 @@ const KeychronLayout KEYCHRON_LAYOUTS[] =
         0x1210,
         "Keychron Q1 Ultra 8K",
         "Q1 Ultra (custom ZMK firmware, OpenRGB direct control)",
-        82, 6, 20,
+        82, 6, 16,
         keychron_q1_ultra_ansi_matrix_map,
         keychron_q1_ultra_ansi_led_names,
     },
@@ -1304,7 +1304,7 @@ const KeychronLayout KEYCHRON_LAYOUTS[] =
         0x0c11,
         "Keychron V1 Ultra 8K (ISO)",
         "V1 Ultra (custom ZMK firmware, OpenRGB direct control)",
-        83, 6, 20,
+        83, 6, 16,
         keychron_v1_ultra_iso_matrix_map,
         keychron_v1_ultra_iso_led_names,
     },
@@ -1312,7 +1312,7 @@ const KeychronLayout KEYCHRON_LAYOUTS[] =
         0x0c12,
         "Keychron V1 Ultra 8K (JIS)",
         "V1 Ultra (custom ZMK firmware, OpenRGB direct control)",
-        86, 6, 20,
+        86, 6, 16,
         keychron_v1_ultra_jis_matrix_map,
         keychron_v1_ultra_jis_led_names,
     },
@@ -1320,7 +1320,7 @@ const KeychronLayout KEYCHRON_LAYOUTS[] =
         0x0c30,
         "Keychron V3 Ultra 8K",
         "V3 Ultra (custom ZMK firmware, OpenRGB direct control)",
-        87, 6, 22,
+        87, 6, 18,
         keychron_v3_ultra_ansi_matrix_map,
         keychron_v3_ultra_ansi_led_names,
     },
@@ -1328,7 +1328,7 @@ const KeychronLayout KEYCHRON_LAYOUTS[] =
         0x1230,
         "Keychron Q3 Ultra 8K",
         "Q3 Ultra (custom ZMK firmware, OpenRGB direct control)",
-        87, 6, 19,
+        87, 6, 18,
         keychron_q3_ultra_ansi_matrix_map,
         keychron_q3_ultra_ansi_led_names,
     },
@@ -1336,7 +1336,7 @@ const KeychronLayout KEYCHRON_LAYOUTS[] =
         0x0ca0,
         "Keychron V10 Ultra 8K",
         "V10 Ultra (custom ZMK firmware, OpenRGB direct control)",
-        88, 6, 20,
+        88, 6, 19,
         keychron_v10_ultra_ansi_matrix_map,
         keychron_v10_ultra_ansi_led_names,
     },
@@ -1344,7 +1344,7 @@ const KeychronLayout KEYCHRON_LAYOUTS[] =
         0x0c50,
         "Keychron V5 Ultra 8K",
         "V5 Ultra (custom ZMK firmware, OpenRGB direct control)",
-        97, 6, 21,
+        97, 6, 18,
         keychron_v5_ultra_ansi_matrix_map,
         keychron_v5_ultra_ansi_led_names,
     },
