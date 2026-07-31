@@ -1,5 +1,5 @@
 /*---------------------------------------------------------*\
-| KeychronV6UltraController.h                               |
+| KeychronUltraController.h                               |
 |                                                           |
 |   Driver for the Keychron V6 Ultra 8K running custom ZMK  |
 |   firmware with OpenRGB direct-control support (issue     |
@@ -27,8 +27,8 @@
 #include <hidapi.h>
 #include "RGBController.h"
 
-#define KEYCHRON_V6U_EPSIZE       32
-#define KEYCHRON_V6U_LEDS_PER_PKT 9
+#define KEYCHRON_ULTRA_EPSIZE       32
+#define KEYCHRON_ULTRA_LEDS_PER_PKT 9
 
 /*---------------------------------------------------------*\
 | Highest protocol version this plugin knows how to speak.   |
@@ -36,23 +36,23 @@
 | be turned away instead of being driven with the wrong wire |
 | format.                                                    |
 \*---------------------------------------------------------*/
-#define KEYCHRON_V6U_PROTOCOL_VERSION 1
+#define KEYCHRON_ULTRA_PROTOCOL_VERSION 1
 
 /*---------------------------------------------------------*\
 | SET_LEDS and GET_LED_INFO carry the LED index in a single  |
 | byte, so the protocol cannot address more than 256 LEDs.   |
 | The biggest board today has 108.                           |
 \*---------------------------------------------------------*/
-#define KEYCHRON_V6U_MAX_LEDS     256
+#define KEYCHRON_ULTRA_MAX_LEDS     256
 
 /*---------------------------------------------------------*\
 | Shared with the plugin's detection pass: a reconnect must  |
 | filter for exactly the same interface detection picked,    |
 | so these live here rather than being duplicated.          |
 \*---------------------------------------------------------*/
-#define KEYCHRON_V6U_VID             0x3434
-#define KEYCHRON_V6U_RAW_USAGE_PAGE  0xFF60
-#define KEYCHRON_V6U_RAW_USAGE       0x61
+#define KEYCHRON_ULTRA_VID             0x3434
+#define KEYCHRON_ULTRA_RAW_USAGE_PAGE  0xFF60
+#define KEYCHRON_ULTRA_RAW_USAGE       0x61
 
 /*---------------------------------------------------------*\
 | Minimum gap between reconnect attempts. Without this, a    |
@@ -60,14 +60,14 @@
 | (12 packets per frame, many frames per second) re-run       |
 | hid_enumerate and burn CPU for nothing.                    |
 \*---------------------------------------------------------*/
-#define KEYCHRON_V6U_RECONNECT_COOLDOWN_MS 2000
+#define KEYCHRON_ULTRA_RECONNECT_COOLDOWN_MS 2000
 
-class KeychronV6UltraController
+class KeychronUltraController
 {
 public:
-    KeychronV6UltraController(hid_device* dev_handle, const char* path,
+    KeychronUltraController(hid_device* dev_handle, const char* path,
                               unsigned short device_pid, unsigned int expected_led_count);
-    ~KeychronV6UltraController();
+    ~KeychronUltraController();
 
     std::string    GetLocation();
     std::string    GetSerialString();

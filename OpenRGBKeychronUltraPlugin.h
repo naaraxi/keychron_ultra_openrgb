@@ -1,5 +1,5 @@
 /*---------------------------------------------------------*\
-| OpenRGBKeychronV6UltraPlugin.h                            |
+| OpenRGBKeychronUltraPlugin.h                            |
 |                                                           |
 |   OpenRGB plugin that registers the Keychron V6 Ultra 8K  |
 |   (custom ZMK firmware, OpenRGB direct control) as an      |
@@ -16,9 +16,9 @@
 
 #include "OpenRGBPluginInterface.h"
 #include "ResourceManagerInterface.h"
-#include "RGBController_KeychronV6Ultra.h"
+#include "RGBController_KeychronUltra.h"
 
-class OpenRGBKeychronV6UltraPlugin : public QObject, public OpenRGBPluginInterface
+class OpenRGBKeychronUltraPlugin : public QObject, public OpenRGBPluginInterface
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID OpenRGBPluginInterface_IID)
@@ -44,7 +44,7 @@ private:
     void                DropDeletedControllers();
 
     ResourceManagerInterface*                    rm = nullptr;
-    std::vector<RGBController_KeychronV6Ultra*>  registered;
+    std::vector<RGBController_KeychronUltra*>  registered;
 
     /*-----------------------------------------------------------------------*\
     | registered is touched from the detection thread (OnDetectionEnd) and     |

@@ -1,9 +1,9 @@
 /*---------------------------------------------------------*\
-| OpenRGBKeychronV6UltraPlugin.cpp                          |
+| OpenRGBKeychronUltraPlugin.cpp                          |
 \*---------------------------------------------------------*/
 
-#include "OpenRGBKeychronV6UltraPlugin.h"
-#include "KeychronV6UltraController.h"
+#include "OpenRGBKeychronUltraPlugin.h"
+#include "KeychronUltraController.h"
 #include "KeychronLayouts.h"
 #include <algorithm>
 #include <chrono>
@@ -13,7 +13,7 @@
 
 
 /*---------------------------------------------------------------------------*\
-| VID and the raw-interface usage filter come from KeychronV6UltraController.h  |
+| VID and the raw-interface usage filter come from KeychronUltraController.h  |
 | so that detection here and the controller's reconnect path can never drift    |
 | apart and match different interfaces.                                        |
 \*---------------------------------------------------------------------------*/
@@ -24,13 +24,13 @@
 | raw-HID protocol; only the PID, name and per-key layout differ.              |
 \*---------------------------------------------------------------------------*/
 
-OpenRGBPluginInfo OpenRGBKeychronV6UltraPlugin::GetPluginInfo()
+OpenRGBPluginInfo OpenRGBKeychronUltraPlugin::GetPluginInfo()
 {
     OpenRGBPluginInfo info;
     info.Name          = "Keychron Ultra (OpenRGB direct)";
     info.Description    = "Direct per-key RGB control for Keychron V- and Q-series Ultra "
                           "keyboards running custom ZMK firmware (issue #893).";
-    info.Version        = "0.4.3";
+    info.Version        = "0.5.0";
     info.Commit         = "";
     info.URL            = "https://github.com/naaraxi/keychron_ultra_openrgb";
     info.Location       = OPENRGB_PLUGIN_LOCATION_SETTINGS;
@@ -39,12 +39,12 @@ OpenRGBPluginInfo OpenRGBKeychronV6UltraPlugin::GetPluginInfo()
     return(info);
 }
 
-unsigned int OpenRGBKeychronV6UltraPlugin::GetPluginAPIVersion()
+unsigned int OpenRGBKeychronUltraPlugin::GetPluginAPIVersion()
 {
     return(OPENRGB_PLUGIN_API_VERSION);
 }
 
-void OpenRGBKeychronV6UltraPlugin::Load(ResourceManagerInterface* resource_manager)
+void OpenRGBKeychronUltraPlugin::Load(ResourceManagerInterface* resource_manager)
 {
     rm = resource_manager;
 
@@ -73,12 +73,12 @@ void OpenRGBKeychronV6UltraPlugin::Load(ResourceManagerInterface* resource_manag
     | run by then, the device list is finished, and it fires on the first     |
     | detection as well as on every rescan.                                   |
     \*-----------------------------------------------------------------------*/
-    rm->RegisterDetectionEndCallback(&OpenRGBKeychronV6UltraPlugin::OnDetectionEnd, this);
+    rm->RegisterDetectionEndCallback(&OpenRGBKeychronUltraPlugin::OnDetectionEnd, this);
 }
 
-void OpenRGBKeychronV6UltraPlugin::OnDetectionEnd(void* arg)
+void OpenRGBKeychronUltraPlugin::OnDetectionEnd(void* arg)
 {
-    OpenRGBKeychronV6UltraPlugin* plugin = (OpenRGBKeychronV6UltraPlugin*)arg;
+    OpenRGBKeychronUltraPlugin* plugin = (OpenRGBKeychronUltraPlugin*)arg;
 
     plugin->DropDeletedControllers();
     plugin->DetectControllers();
@@ -94,7 +94,7 @@ void OpenRGBKeychronV6UltraPlugin::OnDetectionEnd(void* arg)
 | manager's own list, which Cleanup() removes ours from. Comparing a pointer   |
 | is safe, so nothing freed is ever read.                                      |
 \*---------------------------------------------------------------------------*/
-void OpenRGBKeychronV6UltraPlugin::DropDeletedControllers()
+void OpenRGBKeychronUltraPlugin::DropDeletedControllers()
 {
     if(rm == nullptr)
     {
@@ -104,9 +104,9 @@ void OpenRGBKeychronV6UltraPlugin::DropDeletedControllers()
     std::lock_guard<std::mutex> lock(registered_mutex);
 
     const std::vector<RGBController*>&          live = rm->GetRGBControllers();
-    std::vector<RGBController_KeychronV6Ultra*> alive;
+    std::vector<RGBController_KeychronUltra*> alive;
 
-    for(RGBController_KeychronV6Ultra* rgb : registered)
+    for(RGBController_KeychronUltra* rgb : registered)
     {
         if(std::find(live.begin(), live.end(), (RGBController*)rgb) != live.end())
         {
@@ -117,7 +117,7 @@ void OpenRGBKeychronV6UltraPlugin::DropDeletedControllers()
     registered = alive;
 }
 
-void OpenRGBKeychronV6UltraPlugin::DetectControllers()
+void OpenRGBKeychronUltraPlugin::DetectControllers()
 {
     std::lock_guard<std::mutex> lock(registered_mutex);
 
@@ -135,11 +135,11 @@ void OpenRGBKeychronV6UltraPlugin::DetectControllers()
     {
         const KeychronLayout* layout = &KEYCHRON_LAYOUTS[i];
 
-        hid_device_info* devs = hid_enumerate(KEYCHRON_V6U_VID, layout->pid);
+        hid_device_info* devs = hid_enumerate(KEYCHRON_ULTRA_VID, layout->pid);
         for(hid_device_info* cur = devs; cur != nullptr; cur = cur->next)
         {
-            if(cur->usage_page != KEYCHRON_V6U_RAW_USAGE_PAGE
-            || cur->usage      != KEYCHRON_V6U_RAW_USAGE)
+            if(cur->usage_page != KEYCHRON_ULTRA_RAW_USAGE_PAGE
+            || cur->usage      != KEYCHRON_ULTRA_RAW_USAGE)
             {
                 continue;                               /* only the raw command interface */
             }
@@ -150,7 +150,7 @@ void OpenRGBKeychronV6UltraPlugin::DetectControllers()
                 continue;
             }
 
-            KeychronV6UltraController* ctrl = new KeychronV6UltraController(dev, cur->path,
+            KeychronUltraController* ctrl = new KeychronUltraController(dev, cur->path,
                                                                            layout->pid,
                                                                            layout->led_count);
 
@@ -172,13 +172,13 @@ void OpenRGBKeychronV6UltraPlugin::DetectControllers()
             | lost reply should not cost the user their keyboard.              |
             \*---------------------------------------------------------------*/
             unsigned int proto = ctrl->GetProtocolVersion();
-            if(proto > KEYCHRON_V6U_PROTOCOL_VERSION)
+            if(proto > KEYCHRON_ULTRA_PROTOCOL_VERSION)
             {
                 delete ctrl;
                 continue;
             }
 
-            RGBController_KeychronV6Ultra* rgb = new RGBController_KeychronV6Ultra(ctrl, layout);
+            RGBController_KeychronUltra* rgb = new RGBController_KeychronUltra(ctrl, layout);
             rm->RegisterRGBController(rgb);
             registered.push_back(rgb);
 
@@ -192,7 +192,7 @@ void OpenRGBKeychronV6UltraPlugin::DetectControllers()
     }
 }
 
-QWidget* OpenRGBKeychronV6UltraPlugin::GetWidget()
+QWidget* OpenRGBKeychronUltraPlugin::GetWidget()
 {
     /*-----------------------------------------------------------------------*\
     | OpenRGB's OpenRGBPluginContainer does plugin_widget->setParent(this)    |
@@ -209,12 +209,12 @@ QWidget* OpenRGBKeychronV6UltraPlugin::GetWidget()
     return(label);
 }
 
-QMenu* OpenRGBKeychronV6UltraPlugin::GetTrayMenu()
+QMenu* OpenRGBKeychronUltraPlugin::GetTrayMenu()
 {
     return(nullptr);
 }
 
-void OpenRGBKeychronV6UltraPlugin::Unload()
+void OpenRGBKeychronUltraPlugin::Unload()
 {
     /*-----------------------------------------------------------------------*\
     | Stop the callback first. UnloadPlugins() can dlclose this plugin, and a |
@@ -222,7 +222,7 @@ void OpenRGBKeychronV6UltraPlugin::Unload()
     \*-----------------------------------------------------------------------*/
     if(rm != nullptr)
     {
-        rm->UnregisterDetectionEndCallback(&OpenRGBKeychronV6UltraPlugin::OnDetectionEnd, this);
+        rm->UnregisterDetectionEndCallback(&OpenRGBKeychronUltraPlugin::OnDetectionEnd, this);
     }
 
     /*-----------------------------------------------------------------------*\
@@ -246,7 +246,7 @@ void OpenRGBKeychronV6UltraPlugin::Unload()
     |                                                                         |
     | Unregistering first means no new request can find these devices.        |
     \*-----------------------------------------------------------------------*/
-    for(RGBController_KeychronV6Ultra* rgb : registered)
+    for(RGBController_KeychronUltra* rgb : registered)
     {
         if(rm != nullptr)
         {
@@ -266,7 +266,7 @@ void OpenRGBKeychronV6UltraPlugin::Unload()
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    for(RGBController_KeychronV6Ultra* rgb : registered)
+    for(RGBController_KeychronUltra* rgb : registered)
     {
         delete rgb;                                     /* also closes the HID handle */
     }

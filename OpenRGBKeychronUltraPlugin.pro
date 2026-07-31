@@ -8,21 +8,21 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TEMPLATE = lib
 CONFIG  += plugin c++17
-TARGET   = OpenRGBKeychronV6UltraPlugin
+TARGET   = OpenRGBKeychronUltraPlugin
 
 #-----------------------------------------------------------------------------#
 # Plugin sources                                                              #
 #-----------------------------------------------------------------------------#
 HEADERS += \
-    OpenRGBKeychronV6UltraPlugin.h \
-    KeychronV6UltraController.h \
-    RGBController_KeychronV6Ultra.h \
+    OpenRGBKeychronUltraPlugin.h \
+    KeychronUltraController.h \
+    RGBController_KeychronUltra.h \
     KeychronLayouts.h
 
 SOURCES += \
-    OpenRGBKeychronV6UltraPlugin.cpp \
-    KeychronV6UltraController.cpp \
-    RGBController_KeychronV6Ultra.cpp \
+    OpenRGBKeychronUltraPlugin.cpp \
+    KeychronUltraController.cpp \
+    RGBController_KeychronUltra.cpp \
     KeychronLayouts.cpp
 
 #-----------------------------------------------------------------------------#

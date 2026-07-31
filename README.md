@@ -63,7 +63,7 @@ Caps/Num-Lock indicators still overlay on top (handled in firmware).
 ## Install (Windows)
 
 1. Download the DLL for your OpenRGB build from the [latest Release](../../releases/latest):
-   `OpenRGBKeychronV6UltraPlugin-x64.dll` (64-bit OpenRGB, the usual case) or
+   `OpenRGBKeychronUltraPlugin-x64.dll` (64-bit OpenRGB, the usual case) or
    `-x86.dll` (32-bit). Every push also uploads them as Actions artifacts.
 2. In OpenRGB, open **Settings > Plugins**, click **Install Plugin**, and select
    the downloaded DLL. OpenRGB copies it into place for you. (Or drop it into
@@ -89,11 +89,11 @@ cd keychron_ultra_openrgb
 git clone --depth 1 --branch release_candidate_1.0rc3 https://gitlab.com/CalcProgrammer1/OpenRGB.git OpenRGB
 
 # 4. build - stay in the plugin dir; OpenRGB/ is just a subfolder it compiles against
-qmake OpenRGBKeychronV6UltraPlugin.pro CONFIG+=release
+qmake OpenRGBKeychronUltraPlugin.pro CONFIG+=release
 make -j"$(nproc)"
 ```
 
-Then load `libOpenRGBKeychronV6UltraPlugin.so` via OpenRGB's **Settings > Plugins
+Then load `libOpenRGBKeychronUltraPlugin.so` via OpenRGB's **Settings > Plugins
 > Install Plugin** (or copy it into `~/.config/OpenRGB/plugins/` by hand).
 
 The keyboard appears under Devices in **Direct** mode, ready to control (restart

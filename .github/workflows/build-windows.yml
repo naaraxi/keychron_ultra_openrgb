@@ -42,21 +42,21 @@ jobs:
       - name: Build
         shell: cmd
         run: |
-          qmake OpenRGBKeychronV6UltraPlugin.pro CONFIG+=release
+          qmake OpenRGBKeychronUltraPlugin.pro CONFIG+=release
           nmake
 
       - name: Collect DLL
         shell: cmd
         run: |
-          if exist release\OpenRGBKeychronV6UltraPlugin.dll copy release\OpenRGBKeychronV6UltraPlugin.dll .
+          if exist release\OpenRGBKeychronUltraPlugin.dll copy release\OpenRGBKeychronUltraPlugin.dll .
           dir /s /b *.dll
 
       - name: Upload plugin DLL
         uses: actions/upload-artifact@v4
         with:
-          name: OpenRGBKeychronV6UltraPlugin-${{ matrix.name }}
+          name: OpenRGBKeychronUltraPlugin-${{ matrix.name }}
           path: |
-            **/OpenRGBKeychronV6UltraPlugin.dll
+            **/OpenRGBKeychronUltraPlugin.dll
           # A build that produced no DLL is a broken build. Warning here only
           # hides it until the release job fails with something less obvious.
           if-no-files-found: error
@@ -87,7 +87,7 @@ jobs:
               find artifacts -type f | sed 's/^/  /'
               exit 1
             fi
-            cp "$dll" "dist/OpenRGBKeychronV6UltraPlugin-${arch}.dll"
+            cp "$dll" "dist/OpenRGBKeychronUltraPlugin-${arch}.dll"
           done
           ls -l dist
 

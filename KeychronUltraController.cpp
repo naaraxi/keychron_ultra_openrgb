@@ -1,11 +1,11 @@
 /*---------------------------------------------------------*\
-| KeychronV6UltraController.cpp                             |
+| KeychronUltraController.cpp                             |
 |   Talks the custom-firmware OpenRGB command (0x16) over   |
 |   the raw-HID channel (usage 0xFF60), 32-byte reports,    |
 |   unnumbered report id (0x00 prefix on write).            |
 \*---------------------------------------------------------*/
 
-#include "KeychronV6UltraController.h"
+#include "KeychronUltraController.h"
 #include <chrono>
 #include <cstring>
 
@@ -19,10 +19,10 @@
 
 #define KEEPALIVE_INTERVAL_MS    1500
 
-std::mutex                                    KeychronV6UltraController::frame_mutex;
-std::map<unsigned short, std::vector<RGBColor> > KeychronV6UltraController::last_frame;
+std::mutex                                    KeychronUltraController::frame_mutex;
+std::map<unsigned short, std::vector<RGBColor> > KeychronUltraController::last_frame;
 
-KeychronV6UltraController::KeychronV6UltraController(hid_device* dev_handle, const char* path,
+KeychronUltraController::KeychronUltraController(hid_device* dev_handle, const char* path,
                                                      unsigned short device_pid,
                                                      unsigned int expected_led_count)
 {
@@ -37,10 +37,10 @@ KeychronV6UltraController::KeychronV6UltraController(hid_device* dev_handle, con
 
     /* Backdate so the first failure may reconnect immediately. */
     last_reconnect   = std::chrono::steady_clock::now()
-                     - std::chrono::milliseconds(KEYCHRON_V6U_RECONNECT_COOLDOWN_MS);
+                     - std::chrono::milliseconds(KEYCHRON_ULTRA_RECONNECT_COOLDOWN_MS);
 }
 
-KeychronV6UltraController::~KeychronV6UltraController()
+KeychronUltraController::~KeychronUltraController()
 {
     keepalive_run = false;
     if(keepalive_thread.joinable())
@@ -65,18 +65,18 @@ KeychronV6UltraController::~KeychronV6UltraController()
     }
 }
 
-std::string KeychronV6UltraController::GetLocation()
+std::string KeychronUltraController::GetLocation()
 {
     std::lock_guard<std::mutex> lock(hid_mutex);
     return("HID: " + location);
 }
 
-bool KeychronV6UltraController::TakeLocationChanged()
+bool KeychronUltraController::TakeLocationChanged()
 {
     return(location_changed.exchange(false));
 }
 
-std::string KeychronV6UltraController::GetSerialString()
+std::string KeychronUltraController::GetSerialString()
 {
     std::lock_guard<std::mutex> lock(hid_mutex);
 
@@ -98,7 +98,7 @@ std::string KeychronV6UltraController::GetSerialString()
 | Send one command; optionally read the echoed response.    |
 | Returns bytes read into resp, or -1. Mutex-guarded.       |
 \*---------------------------------------------------------*/
-int KeychronV6UltraController::xfer_locked(const unsigned char* payload, size_t len,
+int KeychronUltraController::xfer_locked(const unsigned char* payload, size_t len,
                                           unsigned char* resp)
 {
     if(dev == nullptr)
@@ -106,24 +106,24 @@ int KeychronV6UltraController::xfer_locked(const unsigned char* payload, size_t 
         return(-1);
     }
 
-    unsigned char buf[KEYCHRON_V6U_EPSIZE + 1];
+    unsigned char buf[KEYCHRON_ULTRA_EPSIZE + 1];
     memset(buf, 0x00, sizeof(buf));
     buf[0] = 0x00;                                   /* report id 0 (unnumbered) */
-    memcpy(&buf[1], payload, len > KEYCHRON_V6U_EPSIZE ? KEYCHRON_V6U_EPSIZE : len);
+    memcpy(&buf[1], payload, len > KEYCHRON_ULTRA_EPSIZE ? KEYCHRON_ULTRA_EPSIZE : len);
 
-    if(hid_write(dev, buf, KEYCHRON_V6U_EPSIZE + 1) < 0)
+    if(hid_write(dev, buf, KEYCHRON_ULTRA_EPSIZE + 1) < 0)
     {
         return(-1);
     }
 
     if(resp != nullptr)
     {
-        return(hid_read_timeout(dev, resp, KEYCHRON_V6U_EPSIZE, 500));
+        return(hid_read_timeout(dev, resp, KEYCHRON_ULTRA_EPSIZE, 500));
     }
     return(0);
 }
 
-int KeychronV6UltraController::xfer(const unsigned char* payload, size_t len, unsigned char* resp)
+int KeychronUltraController::xfer(const unsigned char* payload, size_t len, unsigned char* resp)
 {
     std::lock_guard<std::mutex> lock(hid_mutex);
 
@@ -147,10 +147,10 @@ int KeychronV6UltraController::xfer(const unsigned char* payload, size_t len, un
     return(xfer_locked(payload, len, resp));
 }
 
-unsigned int KeychronV6UltraController::GetLEDCountLocked()
+unsigned int KeychronUltraController::GetLEDCountLocked()
 {
     unsigned char pkt[2] = { OPENRGB_CMD, SUB_GET_LED_COUNT };
-    unsigned char resp[KEYCHRON_V6U_EPSIZE] = { 0 };
+    unsigned char resp[KEYCHRON_ULTRA_EPSIZE] = { 0 };
     if(xfer_locked(pkt, sizeof(pkt), resp) > 0 && resp[0] == OPENRGB_CMD)
     {
         return((unsigned int)(resp[2] | (resp[3] << 8)));
@@ -163,7 +163,7 @@ unsigned int KeychronV6UltraController::GetLEDCountLocked()
 | hold hid_mutex. Returns true if we now have a working      |
 | handle to the same board.                                  |
 \*---------------------------------------------------------*/
-bool KeychronV6UltraController::ReconnectLocked()
+bool KeychronUltraController::ReconnectLocked()
 {
     if(shutting_down)
     {
@@ -171,7 +171,7 @@ bool KeychronV6UltraController::ReconnectLocked()
     }
 
     std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-    if(now - last_reconnect < std::chrono::milliseconds(KEYCHRON_V6U_RECONNECT_COOLDOWN_MS))
+    if(now - last_reconnect < std::chrono::milliseconds(KEYCHRON_ULTRA_RECONNECT_COOLDOWN_MS))
     {
         return(false);
     }
@@ -183,12 +183,12 @@ bool KeychronV6UltraController::ReconnectLocked()
         dev = nullptr;
     }
 
-    hid_device_info* devs = hid_enumerate(KEYCHRON_V6U_VID, pid);
+    hid_device_info* devs = hid_enumerate(KEYCHRON_ULTRA_VID, pid);
     bool reconnected      = false;
 
     for(hid_device_info* cur = devs; cur != nullptr; cur = cur->next)
     {
-        if(cur->usage_page != KEYCHRON_V6U_RAW_USAGE_PAGE || cur->usage != KEYCHRON_V6U_RAW_USAGE)
+        if(cur->usage_page != KEYCHRON_ULTRA_RAW_USAGE_PAGE || cur->usage != KEYCHRON_ULTRA_RAW_USAGE)
         {
             continue;                               /* only the raw command interface */
         }
@@ -249,10 +249,10 @@ bool KeychronV6UltraController::ReconnectLocked()
 | LED count check has already proved this is our firmware,   |
 | and one dropped reply should not drop the keyboard.        |
 \*---------------------------------------------------------*/
-unsigned int KeychronV6UltraController::GetProtocolVersion()
+unsigned int KeychronUltraController::GetProtocolVersion()
 {
     unsigned char pkt[2] = { OPENRGB_CMD, SUB_GET_PROTOCOL_VERSION };
-    unsigned char resp[KEYCHRON_V6U_EPSIZE] = { 0 };
+    unsigned char resp[KEYCHRON_ULTRA_EPSIZE] = { 0 };
 
     if(xfer(pkt, sizeof(pkt), resp) > 0 && resp[0] == OPENRGB_CMD)
     {
@@ -261,10 +261,10 @@ unsigned int KeychronV6UltraController::GetProtocolVersion()
     return(0);
 }
 
-unsigned int KeychronV6UltraController::GetLEDCount()
+unsigned int KeychronUltraController::GetLEDCount()
 {
     unsigned char pkt[2] = { OPENRGB_CMD, SUB_GET_LED_COUNT };
-    unsigned char resp[KEYCHRON_V6U_EPSIZE] = { 0 };
+    unsigned char resp[KEYCHRON_ULTRA_EPSIZE] = { 0 };
     if(xfer(pkt, sizeof(pkt), resp) > 0 && resp[0] == OPENRGB_CMD)
     {
         return((unsigned int)(resp[2] | (resp[3] << 8)));
@@ -272,7 +272,7 @@ unsigned int KeychronV6UltraController::GetLEDCount()
     return(0);
 }
 
-void KeychronV6UltraController::SetDirectMode(bool enable)
+void KeychronUltraController::SetDirectMode(bool enable)
 {
     /*-----------------------------------------------------------------------*\
     | Always stop AND join any running keepalive before changing state, so we |
@@ -294,11 +294,11 @@ void KeychronV6UltraController::SetDirectMode(bool enable)
     if(enable)
     {
         keepalive_run    = true;
-        keepalive_thread = std::thread(&KeychronV6UltraController::KeepaliveLoop, this);
+        keepalive_thread = std::thread(&KeychronUltraController::KeepaliveLoop, this);
     }
 }
 
-void KeychronV6UltraController::EnsureDirect()
+void KeychronUltraController::EnsureDirect()
 {
     if(!direct_active)
     {
@@ -310,7 +310,7 @@ void KeychronV6UltraController::EnsureDirect()
 | Re-arm the firmware's 3s auto-hand-back watchdog while     |
 | OpenRGB holds the device, so colors persist between edits. |
 \*---------------------------------------------------------*/
-void KeychronV6UltraController::KeepaliveLoop()
+void KeychronUltraController::KeepaliveLoop()
 {
     while(keepalive_run)
     {
@@ -330,7 +330,7 @@ void KeychronV6UltraController::KeepaliveLoop()
 | Stream all LED colors in runs of <=9 (fits one 32-byte    |
 | packet: 4 header bytes + 9*3 RGB).                        |
 \*---------------------------------------------------------*/
-void KeychronV6UltraController::SetLEDs(const std::vector<RGBColor>& colors)
+void KeychronUltraController::SetLEDs(const std::vector<RGBColor>& colors)
 {
     unsigned int total = (unsigned int)colors.size();
     unsigned int i     = 0;
@@ -340,9 +340,9 @@ void KeychronV6UltraController::SetLEDs(const std::vector<RGBColor>& colors)
     | cannot be addressed. Stop there instead of letting the index wrap and    |
     | write colours over the start of the board.                               |
     \*-----------------------------------------------------------------------*/
-    if(total > KEYCHRON_V6U_MAX_LEDS)
+    if(total > KEYCHRON_ULTRA_MAX_LEDS)
     {
-        total = KEYCHRON_V6U_MAX_LEDS;
+        total = KEYCHRON_ULTRA_MAX_LEDS;
     }
 
     /*-----------------------------------------------------------------------*\
@@ -356,10 +356,10 @@ void KeychronV6UltraController::SetLEDs(const std::vector<RGBColor>& colors)
 
     while(i < total)
     {
-        unsigned int cnt = (total - i) < KEYCHRON_V6U_LEDS_PER_PKT
-                         ? (total - i) : KEYCHRON_V6U_LEDS_PER_PKT;
+        unsigned int cnt = (total - i) < KEYCHRON_ULTRA_LEDS_PER_PKT
+                         ? (total - i) : KEYCHRON_ULTRA_LEDS_PER_PKT;
 
-        unsigned char pkt[4 + KEYCHRON_V6U_LEDS_PER_PKT * 3];
+        unsigned char pkt[4 + KEYCHRON_ULTRA_LEDS_PER_PKT * 3];
         pkt[0] = OPENRGB_CMD;
         pkt[1] = SUB_SET_LEDS;
         pkt[2] = (unsigned char)i;                   /* start index */
@@ -378,7 +378,7 @@ void KeychronV6UltraController::SetLEDs(const std::vector<RGBColor>& colors)
     }
 }
 
-void KeychronV6UltraController::RestoreLastFrame()
+void KeychronUltraController::RestoreLastFrame()
 {
     std::vector<RGBColor> frame;
 
@@ -406,16 +406,16 @@ void KeychronV6UltraController::RestoreLastFrame()
     SetLEDs(frame);
 }
 
-bool KeychronV6UltraController::GetLEDPosition(unsigned int idx, unsigned int& x,
+bool KeychronUltraController::GetLEDPosition(unsigned int idx, unsigned int& x,
                                                unsigned int& y, unsigned int& flags)
 {
-    if(idx >= KEYCHRON_V6U_MAX_LEDS)
+    if(idx >= KEYCHRON_ULTRA_MAX_LEDS)
     {
         return(false);           /* the index is one byte on the wire */
     }
 
     unsigned char pkt[3]  = { OPENRGB_CMD, SUB_GET_LED_INFO, (unsigned char)idx };
-    unsigned char resp[KEYCHRON_V6U_EPSIZE] = { 0 };
+    unsigned char resp[KEYCHRON_ULTRA_EPSIZE] = { 0 };
     if(xfer(pkt, sizeof(pkt), resp) > 0 && resp[0] == OPENRGB_CMD)
     {
         x     = resp[3];   /* args[1] = x (resp[0]=cmd,[1]=sub,[2]=idx echo,[3]=x) */

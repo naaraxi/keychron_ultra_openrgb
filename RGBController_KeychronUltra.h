@@ -1,5 +1,5 @@
 /*---------------------------------------------------------*\
-| RGBController_KeychronV6Ultra.h                           |
+| RGBController_KeychronUltra.h                           |
 |                                                           |
 |   OpenRGB RGBController wrapper for the Keychron V6 Ultra  |
 |   8K custom-firmware OpenRGB direct-control support.       |
@@ -10,15 +10,15 @@
 #include <mutex>
 
 #include "RGBController.h"
-#include "KeychronV6UltraController.h"
+#include "KeychronUltraController.h"
 #include "KeychronLayouts.h"
 
-class RGBController_KeychronV6Ultra : public RGBController
+class RGBController_KeychronUltra : public RGBController
 {
 public:
-    RGBController_KeychronV6Ultra(KeychronV6UltraController* controller_ptr,
+    RGBController_KeychronUltra(KeychronUltraController* controller_ptr,
                                   const KeychronLayout* layout_ptr);
-    ~RGBController_KeychronV6Ultra();
+    ~RGBController_KeychronUltra();
 
     void        SetupZones();
     void        ResizeZone(int zone, int new_size);
@@ -33,7 +33,7 @@ public:
 private:
     void        UpdateLEDsLocked();         /* caller must hold controller_mutex */
 
-    KeychronV6UltraController* controller;
+    KeychronUltraController* controller;
     const KeychronLayout*      layout;
     matrix_map_type            matrix;      /* backs the zone's matrix_map pointer */
 

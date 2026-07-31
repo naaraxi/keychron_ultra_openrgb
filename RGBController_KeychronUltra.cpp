@@ -1,5 +1,5 @@
 /*---------------------------------------------------------*\
-| RGBController_KeychronV6Ultra.cpp                         |
+| RGBController_KeychronUltra.cpp                         |
 |                                                           |
 |   Generic OpenRGB wrapper for any Keychron Ultra board    |
 |   running the custom ZMK firmware. All board-specific     |
@@ -8,7 +8,7 @@
 |   USB PID in the plugin. See KeychronLayouts.h.            |
 \*---------------------------------------------------------*/
 
-#include "RGBController_KeychronV6Ultra.h"
+#include "RGBController_KeychronUltra.h"
 
 
 /*---------------------------------------------------------*\
@@ -19,7 +19,7 @@ enum
     MODE_DIRECT = 0,
 };
 
-RGBController_KeychronV6Ultra::RGBController_KeychronV6Ultra(KeychronV6UltraController* controller_ptr,
+RGBController_KeychronUltra::RGBController_KeychronUltra(KeychronUltraController* controller_ptr,
                                                             const KeychronLayout* layout_ptr)
 {
     controller  = controller_ptr;
@@ -44,7 +44,7 @@ RGBController_KeychronV6Ultra::RGBController_KeychronV6Ultra(KeychronV6UltraCont
     active_mode = MODE_DIRECT;
 }
 
-RGBController_KeychronV6Ultra::~RGBController_KeychronV6Ultra()
+RGBController_KeychronUltra::~RGBController_KeychronUltra()
 {
     /*-----------------------------------------------------------------------*\
     | The base class starts a thread that calls DeviceUpdateLEDs() and        |
@@ -74,7 +74,7 @@ RGBController_KeychronV6Ultra::~RGBController_KeychronV6Ultra()
     controller = nullptr;
 }
 
-void RGBController_KeychronV6Ultra::SetupZones()
+void RGBController_KeychronUltra::SetupZones()
 {
     /*-----------------------------------------------------------------------*\
     | The zone keeps a pointer to matrix, so matrix has to outlive this call.  |
@@ -105,19 +105,19 @@ void RGBController_KeychronV6Ultra::SetupZones()
     SetupColors();
 }
 
-void RGBController_KeychronV6Ultra::ResizeZone(int /*zone*/, int /*new_size*/)
+void RGBController_KeychronUltra::ResizeZone(int /*zone*/, int /*new_size*/)
 {
     /* the layout is fixed per board, so there is nothing to resize */
 }
 
-void RGBController_KeychronV6Ultra::DeviceUpdateLEDs()
+void RGBController_KeychronUltra::DeviceUpdateLEDs()
 {
     std::lock_guard<std::mutex> lock(controller_mutex);
 
     UpdateLEDsLocked();
 }
 
-void RGBController_KeychronV6Ultra::UpdateLEDsLocked()
+void RGBController_KeychronUltra::UpdateLEDsLocked()
 {
     if(controller == nullptr)
     {
@@ -140,17 +140,17 @@ void RGBController_KeychronV6Ultra::UpdateLEDsLocked()
     }
 }
 
-void RGBController_KeychronV6Ultra::UpdateZoneLEDs(int /*zone*/)
+void RGBController_KeychronUltra::UpdateZoneLEDs(int /*zone*/)
 {
     DeviceUpdateLEDs();
 }
 
-void RGBController_KeychronV6Ultra::UpdateSingleLED(int /*led*/)
+void RGBController_KeychronUltra::UpdateSingleLED(int /*led*/)
 {
     DeviceUpdateLEDs();
 }
 
-void RGBController_KeychronV6Ultra::DeviceUpdateMode()
+void RGBController_KeychronUltra::DeviceUpdateMode()
 {
     std::lock_guard<std::mutex> lock(controller_mutex);
 
@@ -172,7 +172,7 @@ void RGBController_KeychronV6Ultra::DeviceUpdateMode()
     }
 }
 
-void RGBController_KeychronV6Ultra::SetCustomMode()
+void RGBController_KeychronUltra::SetCustomMode()
 {
     active_mode = MODE_DIRECT;
 }
