@@ -9,7 +9,7 @@
 #include <chrono>
 #include <cstring>
 
-/* id_openrgb (0x16) subcommands — must match app/src/launcher/openrgb.c */
+/* id_openrgb (0x16) subcommands. Must match app/src/launcher/openrgb.c */
 #define OPENRGB_CMD              0x16
 #define SUB_GET_PROTOCOL_VERSION 0x00
 #define SUB_GET_LED_COUNT        0x01
@@ -18,6 +18,9 @@
 #define SUB_GET_LED_INFO         0x04
 
 #define KEEPALIVE_INTERVAL_MS    1500
+
+std::mutex                                    KeychronV6UltraController::frame_mutex;
+std::map<unsigned short, std::vector<RGBColor> > KeychronV6UltraController::last_frame;
 
 KeychronV6UltraController::KeychronV6UltraController(hid_device* dev_handle, const char* path,
                                                      unsigned short device_pid,
@@ -199,8 +202,11 @@ bool KeychronV6UltraController::ReconnectLocked()
         dev = candidate;
 
         /*-------------------------------------------------------------------*\
-        | Same check detection uses, so we can never rebind to a different    |
-        | Ultra board (or to stock firmware) that happens to share the bus.   |
+        | Same check detection uses. It rules out stock firmware and any      |
+        | Ultra with a different LED count, but two boards of the SAME model  |
+        | look identical here, and the firmware reports a fixed serial so     |
+        | there is nothing left to tell them apart. Known and accepted: it    |
+        | needs two of one model re-enumerating at once.                      |
         \*-------------------------------------------------------------------*/
         if(GetLEDCountLocked() != expected_leds)
         {
@@ -236,14 +242,23 @@ bool KeychronV6UltraController::ReconnectLocked()
     return(reconnected);
 }
 
-bool KeychronV6UltraController::IsOpenRGBFirmware()
+/*---------------------------------------------------------*\
+| Ask the firmware which version of the 0x16 protocol it     |
+| speaks. Returns 0 if the device did not answer, which the  |
+| caller should treat as "assume the current version": the   |
+| LED count check has already proved this is our firmware,   |
+| and one dropped reply should not drop the keyboard.        |
+\*---------------------------------------------------------*/
+unsigned int KeychronV6UltraController::GetProtocolVersion()
 {
-    /*-----------------------------------------------------------------------*\
-    | Our firmware answers GET_LED_COUNT with a nonzero count; stock firmware  |
-    | doesn't implement the 0x16 command and GetLEDCount() returns 0. The      |
-    | plugin separately checks the count matches the PID's expected layout.    |
-    \*-----------------------------------------------------------------------*/
-    return(GetLEDCount() != 0);
+    unsigned char pkt[2] = { OPENRGB_CMD, SUB_GET_PROTOCOL_VERSION };
+    unsigned char resp[KEYCHRON_V6U_EPSIZE] = { 0 };
+
+    if(xfer(pkt, sizeof(pkt), resp) > 0 && resp[0] == OPENRGB_CMD)
+    {
+        return((unsigned int)resp[2]);
+    }
+    return(0);
 }
 
 unsigned int KeychronV6UltraController::GetLEDCount()
@@ -320,6 +335,25 @@ void KeychronV6UltraController::SetLEDs(const std::vector<RGBColor>& colors)
     unsigned int total = (unsigned int)colors.size();
     unsigned int i     = 0;
 
+    /*-----------------------------------------------------------------------*\
+    | The start index goes on the wire as one byte, so anything past 256 LEDs  |
+    | cannot be addressed. Stop there instead of letting the index wrap and    |
+    | write colours over the start of the board.                               |
+    \*-----------------------------------------------------------------------*/
+    if(total > KEYCHRON_V6U_MAX_LEDS)
+    {
+        total = KEYCHRON_V6U_MAX_LEDS;
+    }
+
+    /*-----------------------------------------------------------------------*\
+    | Remember the frame so RestoreLastFrame() can put it back if a rescan     |
+    | throws this controller away and builds a new one.                        |
+    \*-----------------------------------------------------------------------*/
+    {
+        std::lock_guard<std::mutex> frame_lock(frame_mutex);
+        last_frame[pid] = colors;
+    }
+
     while(i < total)
     {
         unsigned int cnt = (total - i) < KEYCHRON_V6U_LEDS_PER_PKT
@@ -344,9 +378,42 @@ void KeychronV6UltraController::SetLEDs(const std::vector<RGBColor>& colors)
     }
 }
 
+void KeychronV6UltraController::RestoreLastFrame()
+{
+    std::vector<RGBColor> frame;
+
+    {
+        std::lock_guard<std::mutex> frame_lock(frame_mutex);
+        std::map<unsigned short, std::vector<RGBColor> >::iterator it = last_frame.find(pid);
+        if(it == last_frame.end())
+        {
+            return;              /* first time we have seen this board this run */
+        }
+        frame = it->second;
+    }
+
+    if(frame.size() != expected_leds)
+    {
+        return;                  /* different board behind the same PID */
+    }
+
+    /*-----------------------------------------------------------------------*\
+    | The old controller handed the board back to its onboard lighting on the  |
+    | way out, so take it again and repaint. Without this the keyboard sits on |
+    | its own effects after a rescan until something happens to send a frame.  |
+    \*-----------------------------------------------------------------------*/
+    SetDirectMode(true);
+    SetLEDs(frame);
+}
+
 bool KeychronV6UltraController::GetLEDPosition(unsigned int idx, unsigned int& x,
                                                unsigned int& y, unsigned int& flags)
 {
+    if(idx >= KEYCHRON_V6U_MAX_LEDS)
+    {
+        return(false);           /* the index is one byte on the wire */
+    }
+
     unsigned char pkt[3]  = { OPENRGB_CMD, SUB_GET_LED_INFO, (unsigned char)idx };
     unsigned char resp[KEYCHRON_V6U_EPSIZE] = { 0 };
     if(xfer(pkt, sizeof(pkt), resp) > 0 && resp[0] == OPENRGB_CMD)

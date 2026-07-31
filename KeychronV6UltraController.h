@@ -18,6 +18,8 @@
 #pragma once
 
 #include <atomic>
+#include <chrono>
+#include <map>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -27,6 +29,21 @@
 
 #define KEYCHRON_V6U_EPSIZE       32
 #define KEYCHRON_V6U_LEDS_PER_PKT 9
+
+/*---------------------------------------------------------*\
+| Highest protocol version this plugin knows how to speak.   |
+| The firmware reports its own version, so a newer board can |
+| be turned away instead of being driven with the wrong wire |
+| format.                                                    |
+\*---------------------------------------------------------*/
+#define KEYCHRON_V6U_PROTOCOL_VERSION 1
+
+/*---------------------------------------------------------*\
+| SET_LEDS and GET_LED_INFO carry the LED index in a single  |
+| byte, so the protocol cannot address more than 256 LEDs.   |
+| The biggest board today has 108.                           |
+\*---------------------------------------------------------*/
+#define KEYCHRON_V6U_MAX_LEDS     256
 
 /*---------------------------------------------------------*\
 | Shared with the plugin's detection pass: a reconnect must  |
@@ -55,11 +72,19 @@ public:
     std::string    GetLocation();
     std::string    GetSerialString();
     unsigned int   GetLEDCount();          // queries the device; 0 = not our firmware
-    bool           IsOpenRGBFirmware();    // true if GetLEDCount() responds nonzero
+    unsigned int   GetProtocolVersion();   // 0 if the device did not answer
 
     void           SetDirectMode(bool enable);
     void           EnsureDirect();         // enter direct + start keepalive if not already
     void           SetLEDs(const std::vector<RGBColor>& colors);
+
+    /*-----------------------------------------------------------------------*\
+    | Put the board back the way it looked before a rescan destroyed the old   |
+    | controller. Does nothing if this is the first time we have seen the      |
+    | board this run, so a fresh start leaves the onboard lighting alone       |
+    | rather than blanking the keyboard.                                       |
+    \*-----------------------------------------------------------------------*/
+    void           RestoreLastFrame();
     bool           GetLEDPosition(unsigned int idx, unsigned int& x, unsigned int& y,
                                   unsigned int& flags);
 
@@ -96,4 +121,12 @@ private:
     unsigned int GetLEDCountLocked();
     bool ReconnectLocked();
     void KeepaliveLoop();
+
+    /*-----------------------------------------------------------------------*\
+    | The last frame sent to each board, kept per PID so a controller built    |
+    | after a rescan can pick up where the destroyed one left off. Static      |
+    | because the controller object itself does not survive the rescan.        |
+    \*-----------------------------------------------------------------------*/
+    static std::mutex                                    frame_mutex;
+    static std::map<unsigned short, std::vector<RGBColor> > last_frame;
 };

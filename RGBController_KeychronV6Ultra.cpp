@@ -5,10 +5,11 @@
 |   running the custom ZMK firmware. All board-specific     |
 |   data (LED count, physical matrix map, per-key names)    |
 |   comes from the KeychronLayout descriptor selected by    |
-|   USB PID in the plugin — see KeychronLayouts.h.          |
+|   USB PID in the plugin. See KeychronLayouts.h.            |
 \*---------------------------------------------------------*/
 
 #include "RGBController_KeychronV6Ultra.h"
+
 
 /*---------------------------------------------------------*\
 | Modes                                                      |
@@ -46,28 +47,26 @@ RGBController_KeychronV6Ultra::RGBController_KeychronV6Ultra(KeychronV6UltraCont
 RGBController_KeychronV6Ultra::~RGBController_KeychronV6Ultra()
 {
     /*-----------------------------------------------------------------------*\
-    | RGBController's constructor starts DeviceCallThread, which calls the    |
-    | virtual DeviceUpdateLEDs()/DeviceUpdateMode() in a loop, and only the   |
-    | BASE destructor stops it - base destructors run after this body. Freeing |
-    | the hardware controller here unguarded is therefore a use-after-free    |
-    | whenever an update is in flight, and that is a routine path rather than |
-    | a shutdown-only one: OpenRGB's Cleanup() destroys plugin-registered     |
-    | controllers on every "Rescan Devices".                                  |
-    |                                                                        |
-    | Taking the same mutex the update methods take means a concurrent update |
-    | either completes before the pointer goes away or sees nullptr and does  |
-    | nothing.                                                                |
-    |                                                                        |
-    | This also closes the matching race in ~KeychronV6UltraController, which |
-    | stops and joins the keepalive thread without holding its own            |
-    | state_mutex: DeviceUpdateMode() is the only caller of SetDirectMode()   |
-    | and can no longer run while this lock is held.                          |
-    |                                                                        |
-    | Residual, not fixable from a plugin: once ~RGBController begins, the    |
-    | vptr is demoted while its thread is still running, so a call flag set   |
-    | in that window dispatches a pure virtual. CallFlag_*, DeviceCallThread  |
-    | and DeviceThreadRunning are all private in RGBController, so a subclass |
-    | cannot drain or stop the thread earlier.                                |
+    | The base class starts a thread that calls DeviceUpdateLEDs() and        |
+    | DeviceUpdateMode() over and over, and only the base destructor stops    |
+    | it. Base destructors run after this one, so the thread is still going   |
+    | while we are in here. Deleting the controller without the lock would be |
+    | a use after free. This is not a rare shutdown path either, because      |
+    | OpenRGB destroys plugin controllers on every rescan.                    |
+    |                                                                         |
+    | Taking the same lock the update methods take means an update in flight  |
+    | either finishes first or sees a null pointer and does nothing.          |
+    |                                                                         |
+    | It also settles a second race. The controller destructor stops the      |
+    | keepalive thread without holding its own state lock, but the only       |
+    | caller of SetDirectMode() is DeviceUpdateMode(), which cannot run while |
+    | we hold this.                                                           |
+    |                                                                         |
+    | One gap is left and a plugin cannot close it. Once the base destructor  |
+    | starts, the vtable pointer drops back to the base class while its       |
+    | thread is still running, so a call queued in that moment lands on a     |
+    | pure virtual. The thread and its flags are private in RGBController, so |
+    | there is no way to stop it any earlier from here.                       |
     \*-----------------------------------------------------------------------*/
     std::lock_guard<std::mutex> lock(controller_mutex);
 
@@ -78,8 +77,9 @@ RGBController_KeychronV6Ultra::~RGBController_KeychronV6Ultra()
 void RGBController_KeychronV6Ultra::SetupZones()
 {
     /*-----------------------------------------------------------------------*\
-    | matrix backs the zone's matrix_map pointer, so it must outlive setup —  |
-    | it is a member. map/height/width come straight from the layout.         |
+    | The zone keeps a pointer to matrix, so matrix has to outlive this call.  |
+    | That is why it is a member. Its map, height and width come straight     |
+    | from the layout.                                                        |
     \*-----------------------------------------------------------------------*/
     matrix.height = layout->map_height;
     matrix.width  = layout->map_width;
@@ -107,7 +107,7 @@ void RGBController_KeychronV6Ultra::SetupZones()
 
 void RGBController_KeychronV6Ultra::ResizeZone(int /*zone*/, int /*new_size*/)
 {
-    /* fixed per-board layout — nothing to resize */
+    /* the layout is fixed per board, so there is nothing to resize */
 }
 
 void RGBController_KeychronV6Ultra::DeviceUpdateLEDs()
@@ -128,11 +128,11 @@ void RGBController_KeychronV6Ultra::UpdateLEDsLocked()
     controller->SetLEDs(colors);
 
     /*-----------------------------------------------------------------------*\
-    | If a reconnect moved the keyboard to a different HID path, refresh the  |
-    | location we cached at construction. Otherwise OpenRGB (and the SDK, and |
-    | anything reading it such as Artemis) keeps reporting the old node long  |
-    | after it stopped existing, which makes this failure very hard to        |
-    | diagnose. Cheap: an atomic exchange on the common no-change path.       |
+    | A reconnect can move the keyboard to a different HID node, so refresh   |
+    | the location we cached when this object was built. Without this OpenRGB |
+    | and anything reading it, such as Artemis, keep showing a node that no   |
+    | longer exists, which is hard to make sense of when something breaks.    |
+    | The check itself is one atomic read when nothing has changed.           |
     \*-----------------------------------------------------------------------*/
     if(controller->TakeLocationChanged())
     {
@@ -159,13 +159,16 @@ void RGBController_KeychronV6Ultra::DeviceUpdateMode()
         return;
     }
 
-    /* Direct is the only host-driven mode; entering it takes the keyboard over  |
-     | (and starts the keepalive), leaving it hands back to onboard lighting.    */
+    /*-----------------------------------------------------------------------*\
+    | Direct is the only mode the host drives. Entering it takes the keyboard |
+    | over and starts the keepalive. Leaving it gives the board back to its   |
+    | own lighting.                                                           |
+    \*-----------------------------------------------------------------------*/
     controller->SetDirectMode(active_mode == MODE_DIRECT);
 
     if(active_mode == MODE_DIRECT)
     {
-        UpdateLEDsLocked();       /* already holding the lock - must not re-take it */
+        UpdateLEDsLocked();       /* we already hold the lock, so do not take it again */
     }
 }
 

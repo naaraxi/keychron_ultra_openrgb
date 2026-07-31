@@ -6,8 +6,11 @@
 #include "KeychronV6UltraController.h"
 #include "KeychronLayouts.h"
 #include <algorithm>
+#include <chrono>
+#include <thread>
 #include <hidapi.h>
 #include <QLabel>
+
 
 /*---------------------------------------------------------------------------*\
 | VID and the raw-interface usage filter come from KeychronV6UltraController.h  |
@@ -27,7 +30,7 @@ OpenRGBPluginInfo OpenRGBKeychronV6UltraPlugin::GetPluginInfo()
     info.Name          = "Keychron Ultra (OpenRGB direct)";
     info.Description    = "Direct per-key RGB control for Keychron V- and Q-series Ultra "
                           "keyboards running custom ZMK firmware (issue #893).";
-    info.Version        = "0.4.1";
+    info.Version        = "0.4.3";
     info.Commit         = "";
     info.URL            = "https://github.com/naaraxi/keychron_ultra_openrgb";
     info.Location       = OPENRGB_PLUGIN_LOCATION_SETTINGS;
@@ -45,23 +48,30 @@ void OpenRGBKeychronV6UltraPlugin::Load(ResourceManagerInterface* resource_manag
 {
     rm = resource_manager;
 
+    /*-----------------------------------------------------------------------*\
+    | Safe to call again, hidapi ignores a second init. There is deliberately  |
+    | no matching hid_exit() in Unload(): hidapi state is global and OpenRGB   |
+    | owns it, so tearing it down from a plugin would pull it out from under   |
+    | the host and every other device it has open.                             |
+    \*-----------------------------------------------------------------------*/
     hid_init();
 
     DetectControllers();
 
     /*-----------------------------------------------------------------------*\
-    | OpenRGB loads plugins exactly once per run - OpenRGBDialog's            |
-    | onDetectionEnded() gates ScanAndLoadPlugins() behind a plugins_loaded   |
-    | flag - but every rescan calls ResourceManager::Cleanup(), which deletes |
-    | every controller in rgb_controllers_hw. RegisterRGBController() puts    |
-    | ours in that same list, so a rescan destroys our devices and nothing    |
-    | ever asks the plugin for them again: the keyboard silently disappears   |
-    | for the rest of the session, and `registered` is left holding freed     |
-    | pointers that Unload() would unregister and delete a second time.       |
-    |                                                                        |
-    | Detection-end is the right place to rebuild: Cleanup() has run, the     |
-    | resource manager's own detection has finished writing the device list,  |
-    | and it fires on the initial detection as well as on every rescan.       |
+    | OpenRGB only loads a plugin once per run. Its onDetectionEnded() keeps  |
+    | a plugins_loaded flag and skips loading after the first time. But every |
+    | rescan calls ResourceManager::Cleanup(), and that deletes everything in |
+    | rgb_controllers_hw, which is the same list RegisterRGBController() puts |
+    | our devices in.                                                         |
+    |                                                                         |
+    | So a rescan destroys our keyboard and nobody asks us to make a new one. |
+    | It disappears for the rest of the session, and the pointers we kept are |
+    | now dangling, ready to be freed a second time in Unload().              |
+    |                                                                         |
+    | Rebuilding at the end of detection fixes both. Cleanup() has already    |
+    | run by then, the device list is finished, and it fires on the first     |
+    | detection as well as on every rescan.                                   |
     \*-----------------------------------------------------------------------*/
     rm->RegisterDetectionEndCallback(&OpenRGBKeychronV6UltraPlugin::OnDetectionEnd, this);
 }
@@ -75,13 +85,14 @@ void OpenRGBKeychronV6UltraPlugin::OnDetectionEnd(void* arg)
 }
 
 /*---------------------------------------------------------------------------*\
-| Forget the controllers OpenRGB has already destroyed, WITHOUT deleting them: |
-| Cleanup() owns and frees them. A stale entry left here would be passed to    |
-| UnregisterRGBController() - which dereferences it for logging and for the    |
-| virtual ClearCallbacks() call - and then deleted again.                      |
-|                                                                             |
-| Liveness is decided by pointer identity against the resource manager's list, |
-| which Cleanup() erases ours from, so no freed pointer is ever dereferenced.  |
+| Drop the controllers OpenRGB has already destroyed. Do not delete them here, |
+| Cleanup() owns them and has freed them already. Keeping a stale one would    |
+| hand it to UnregisterRGBController(), which reads its name for the log and   |
+| calls a virtual on it, and then we would free it a second time.              |
+|                                                                              |
+| We decide what is still alive by comparing pointers against the resource     |
+| manager's own list, which Cleanup() removes ours from. Comparing a pointer   |
+| is safe, so nothing freed is ever read.                                      |
 \*---------------------------------------------------------------------------*/
 void OpenRGBKeychronV6UltraPlugin::DropDeletedControllers()
 {
@@ -111,9 +122,9 @@ void OpenRGBKeychronV6UltraPlugin::DetectControllers()
     std::lock_guard<std::mutex> lock(registered_mutex);
 
     /*-----------------------------------------------------------------------*\
-    | Our devices survived the detection cycle (no Cleanup(), e.g. detection  |
-    | disabled, or a rescan that bailed out early), so re-registering would   |
-    | just duplicate them and open a second handle to the same keyboard.      |
+    | Our devices came through the detection cycle alive, which happens when  |
+    | Cleanup() did not run at all. Registering again here would show the     |
+    | keyboard twice and open a second handle to it.                          |
     \*-----------------------------------------------------------------------*/
     if(!registered.empty())
     {
@@ -144,10 +155,24 @@ void OpenRGBKeychronV6UltraPlugin::DetectControllers()
                                                                            layout->led_count);
 
             /*---------------------------------------------------------------*\
-            | Must speak our firmware AND report the LED count this layout    |
-            | expects — guards against a PID/layout mismatch lighting wrong.  |
+            | Stock firmware does not answer this at all and returns 0, so one |
+            | call rules out both stock firmware and a PID whose layout says a |
+            | different number of LEDs.                                        |
             \*---------------------------------------------------------------*/
-            if(!ctrl->IsOpenRGBFirmware() || ctrl->GetLEDCount() != layout->led_count)
+            if(ctrl->GetLEDCount() != layout->led_count)
+            {
+                delete ctrl;
+                continue;
+            }
+
+            /*---------------------------------------------------------------*\
+            | Turn away firmware newer than we know how to talk to. A device   |
+            | that does not answer reports 0, and we let that through, because |
+            | the LED count above already proved it is our firmware and one    |
+            | lost reply should not cost the user their keyboard.              |
+            \*---------------------------------------------------------------*/
+            unsigned int proto = ctrl->GetProtocolVersion();
+            if(proto > KEYCHRON_V6U_PROTOCOL_VERSION)
             {
                 delete ctrl;
                 continue;
@@ -156,6 +181,12 @@ void OpenRGBKeychronV6UltraPlugin::DetectControllers()
             RGBController_KeychronV6Ultra* rgb = new RGBController_KeychronV6Ultra(ctrl, layout);
             rm->RegisterRGBController(rgb);
             registered.push_back(rgb);
+
+            /*---------------------------------------------------------------*\
+            | If a rescan just destroyed the previous controller, put the      |
+            | colours back. Does nothing on the first detection of the run.    |
+            \*---------------------------------------------------------------*/
+            ctrl->RestoreLastFrame();
         }
         hid_free_enumeration(devs);
     }
@@ -202,12 +233,41 @@ void OpenRGBKeychronV6UltraPlugin::Unload()
 
     std::lock_guard<std::mutex> lock(registered_mutex);
 
+    /*-----------------------------------------------------------------------*\
+    | Take every device out of the list before freeing any of them.           |
+    |                                                                         |
+    | OpenRGB's SDK server keeps a reference to the same vector the resource  |
+    | manager stores controllers in, and SendReply_ControllerData() calls     |
+    | GetDeviceDescription() on whatever it finds there without taking any    |
+    | lock. If a client such as Artemis asks for device data while we are     |
+    | deleting, the server can read an object we have already freed. That is  |
+    | a real crash and we have seen it, a SIGSEGV inside memcpy under         |
+    | GetDeviceDescription during shutdown.                                   |
+    |                                                                         |
+    | Unregistering first means no new request can find these devices.        |
+    \*-----------------------------------------------------------------------*/
     for(RGBController_KeychronV6Ultra* rgb : registered)
     {
         if(rm != nullptr)
         {
             rm->UnregisterRGBController(rgb);
         }
+    }
+
+    /*-----------------------------------------------------------------------*\
+    | A request that was already running when we unregistered still holds its |
+    | pointer, and there is no way for a plugin to wait for it: the server    |
+    | offers nothing to synchronise on. Give it a moment to finish instead.   |
+    | This only narrows the race, it does not close it, and the only real fix |
+    | belongs upstream. Unload runs on shutdown, so the wait costs nothing.   |
+    \*-----------------------------------------------------------------------*/
+    if(!registered.empty())
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    for(RGBController_KeychronV6Ultra* rgb : registered)
+    {
         delete rgb;                                     /* also closes the HID handle */
     }
     registered.clear();

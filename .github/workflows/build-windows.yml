@@ -57,7 +57,9 @@ jobs:
           name: OpenRGBKeychronV6UltraPlugin-${{ matrix.name }}
           path: |
             **/OpenRGBKeychronV6UltraPlugin.dll
-          if-no-files-found: warn
+          # A build that produced no DLL is a broken build. Warning here only
+          # hides it until the release job fails with something less obvious.
+          if-no-files-found: error
 
   release:
     needs: build
@@ -73,11 +75,20 @@ jobs:
 
       - name: Stage DLLs with arch suffix
         run: |
+          set -euo pipefail
           mkdir -p dist
-          x64="$(find artifacts -path '*Qt5-x64*' -name '*.dll' | head -1)"
-          x86="$(find artifacts -path '*Qt5-x86*' -name '*.dll' | head -1)"
-          cp "$x64" dist/OpenRGBKeychronV6UltraPlugin-x64.dll
-          cp "$x86" dist/OpenRGBKeychronV6UltraPlugin-x86.dll
+          # Say which one is missing. Without this an empty find leaves the
+          # variable blank and cp fails with a message that names neither the
+          # architecture nor the reason.
+          for arch in x64 x86; do
+            dll="$(find artifacts -path "*Qt5-${arch}*" -name '*.dll' | head -1)"
+            if [ -z "$dll" ]; then
+              echo "No ${arch} DLL in the build artifacts. The ${arch} build did not produce one."
+              find artifacts -type f | sed 's/^/  /'
+              exit 1
+            fi
+            cp "$dll" "dist/OpenRGBKeychronV6UltraPlugin-${arch}.dll"
+          done
           ls -l dist
 
       - name: Publish release
