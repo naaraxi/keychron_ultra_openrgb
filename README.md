@@ -12,9 +12,11 @@ Stock Keychron firmware will not respond and the device won't appear.
 Target: **OpenRGB 1.0rc3**, plugin API v4. Prebuilt for **Windows** (x64/x86); on
 **Linux**, build from source (below).
 
-> Companion firmware: [naaraxi/zmk (branch `openrgb`)](https://github.com/naaraxi/zmk/tree/openrgb)
-> - the custom ZMK build this plugin talks to, plus the host flasher. Each board
-> has its own shield there (for example `keychron_v6_ultra_ansi`).
+## Companion firmware
+
+[naaraxi/zmk (branch `openrgb`)](https://github.com/naaraxi/zmk/tree/openrgb) is the
+custom ZMK build this plugin talks to, plus the host flasher. Each board has its own
+shield there (for example `keychron_v6_ultra_ansi`).
 
 ## Supported keyboards
 
