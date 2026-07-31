@@ -119,9 +119,9 @@ This plugin is still young and isn't 100% compatible with everything OpenRGB
 does. Per-device control (the main use case) works fine, but some edge paths are
 rougher, and this is **not an exhaustive list** - expect the occasional surprise.
 
-- **"Apply to all devices" can crash OpenRGB.** Set this keyboard's mode/color
-  from its own device page instead. Not yet root-caused; the fault reported so
-  far is inside OpenRGB itself rather than the plugin.
+- **"Apply to all devices" may crash OpenRGB on Windows.** Set this keyboard's
+  mode and color from its own device page instead. It has not been seen on
+  Linux.
 
 ## Related / Notable
 
